@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html lang="es" data-bs-theme="light">
+<html lang="pt-BR" data-bs-theme="light">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>WMS - Eliud Gestor</title>
+    <title>EliudGestorGCA - Sistema de Gestão</title>
     
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
@@ -17,43 +17,46 @@
     <style>
         :root {
             --primary-color: #0d6efd;
-            --sidebar-width: 250px;
+            --sidebar-width: 260px;
         }
 
         body { display: flex; min-height: 100vh; overflow-x: hidden; }
 
-        /* Sidebar Styling */
+        /* MENU LATERAL (SIDEBAR) */
         #sidebar {
             min-width: var(--sidebar-width);
             max-width: var(--sidebar-width);
             background: #212529;
             color: #fff;
             transition: all 0.3s;
+            display: flex; flex-direction: column;
         }
         
         #sidebar.active { margin-left: calc(var(--sidebar-width) * -1); }
         
         #sidebar .list-group-item {
             background: transparent;
-            color: #fff;
+            color: #ccc;
             border: none;
             padding: 15px 20px;
             cursor: pointer;
+            transition: 0.2s;
         }
         
-        #sidebar .list-group-item:hover { background: #343a40; color: #ffc107; }
-        #sidebar .list-group-item.active { background: #0d6efd; }
+        #sidebar .list-group-item:hover { background: #343a40; color: #fff; padding-left: 25px; }
+        #sidebar .list-group-item.active { background: #0d6efd; color: #fff; }
+        #sidebar .list-group-item i { width: 25px; }
 
-        /* Main Content */
-        #content { width: 100%; padding: 20px; transition: all 0.3s; }
+        /* CONTEÚDO PRINCIPAL */
+        #content { width: 100%; padding: 20px; transition: all 0.3s; background-color: #f8f9fa; }
+        [data-bs-theme="dark"] #content { background-color: #121212; }
 
-        /* Vistas (Tabs) */
+        /* ANIMAÇÃO DE TROCA DE TELA */
         .view-section { display: none; animation: fadeIn 0.3s; }
         .view-section.active { display: block; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
 
-        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
-
-        /* Imprimir Etiquetas */
+        /* ÁREA DE IMPRESSÃO (ETIQUETAS) */
         #printable-area { display: none; }
         
         @media print {
@@ -63,67 +66,99 @@
                 position: absolute; left: 0; top: 0; width: 100%;
                 display: flex; flex-direction: column; align-items: center; justify-content: center;
             }
-            .etiqueta { border: 2px solid #000; padding: 20px; margin: 10px; text-align: center; }
+            .etiqueta { 
+                border: 2px solid #000; padding: 20px; margin: 20px; text-align: center; 
+                width: 300px; page-break-inside: avoid;
+            }
         }
     </style>
 </head>
 <body>
 
     <nav id="sidebar">
-        <div class="sidebar-header p-3 border-bottom border-secondary">
-            <h3>📦 EliudGestor GCA Embalagem</h3>
+        <div class="sidebar-header p-4 border-bottom border-secondary">
+            <h3>🏭 EliudGestor<span class="text-primary">GCA</span></h3>
+            <small class="text-muted">Sistema Integrado de Gestão</small>
         </div>
-        <ul class="list-group list-group-flush mt-3">
-            <li class="list-group-item active" onclick="showView('dashboard')"><i class="fas fa-chart-line me-2"></i> Dashboard</li>
-            <li class="list-group-item" onclick="showView('entrada')"><i class="fas fa-box-open me-2"></i> Entrada MP</li>
-            <li class="list-group-item" onclick="showView('producao')"><i class="fas fa-cogs me-2"></i> Producción</li>
-            <li class="list-group-item" onclick="showView('acabado')"><i class="fas fa-check-circle me-2"></i> Stock Acabado</li>
-            <li class="list-group-item" onclick="showView('saida')"><i class="fas fa-truck-loading me-2"></i> Despacho/Salida</li>
+        
+        <ul class="list-group list-group-flush mt-3 flex-grow-1">
+            <li class="list-group-item active" onclick="showView('dashboard')">
+                <i class="fas fa-chart-pie"></i> Painel Geral
+            </li>
+            <li class="list-group-item" onclick="showView('entrada')">
+                <i class="fas fa-truck-loading"></i> Entrada (MP)
+            </li>
+            <li class="list-group-item" onclick="showView('producao')">
+                <i class="fas fa-industry"></i> Produção
+            </li>
+            <li class="list-group-item" onclick="showView('acabado')">
+                <i class="fas fa-boxes"></i> Estoque Acabado
+            </li>
+            <li class="list-group-item" onclick="showView('saida')">
+                <i class="fas fa-shipping-fast"></i> Expedição / Saída
+            </li>
         </ul>
-        <div class="p-3 mt-auto">
-            <button class="btn btn-outline-light w-100" onclick="toggleTheme()">🌙 Modo Oscuro</button>
+        
+        <div class="p-3">
+            <button class="btn btn-outline-light w-100" onclick="toggleTheme()">
+                <i class="fas fa-moon"></i> Modo Escuro
+            </button>
         </div>
     </nav>
 
     <div id="content">
-        <nav class="navbar navbar-light bg-light mb-4 rounded d-md-none">
-            <div class="container-fluid">
-                <button type="button" id="sidebarCollapse" class="btn btn-primary">
-                    <i class="fas fa-bars"></i>
-                </button>
-            </div>
+        
+        <nav class="navbar navbar-light bg-white shadow-sm mb-4 rounded d-md-none p-2">
+            <button type="button" id="sidebarCollapse" class="btn btn-primary">
+                <i class="fas fa-bars"></i> Menu
+            </button>
         </nav>
 
         <div id="view-dashboard" class="view-section active">
-            <h2>📊 Panel de Control</h2>
-            <div class="row mt-4">
-                <div class="col-md-6 mb-3">
-                    <div class="card text-white bg-primary">
-                        <div class="card-header">Estoque Bruto (Items)</div>
-                        <div class="card-body"><h1 id="total-raw">0</h1></div>
+            <h2 class="mb-4">📊 Painel de Controle</h2>
+            
+            <div class="row g-4">
+                <div class="col-md-6">
+                    <div class="card text-white bg-primary h-100">
+                        <div class="card-header">Matéria Prima em Estoque</div>
+                        <div class="card-body display-4 fw-bold" id="total-raw">0</div>
                     </div>
                 </div>
-                <div class="col-md-6 mb-3">
-                    <div class="card text-white bg-success">
-                        <div class="card-header">Estoque Acabado (Items)</div>
-                        <div class="card-body"><h1 id="total-finished">0</h1></div>
+                <div class="col-md-6">
+                    <div class="card text-white bg-success h-100">
+                        <div class="card-header">Produtos Acabados Prontos</div>
+                        <div class="card-body display-4 fw-bold" id="total-finished">0</div>
                     </div>
                 </div>
             </div>
-            <div class="row">
-                <div class="col-md-6 mb-3">
-                    <div class="card p-3"><canvas id="stockChart"></canvas></div>
-                </div>
-                <div class="col-md-6">
-                    <div class="card">
-                        <div class="card-header d-flex justify-content-between">
-                            Historial Reciente
-                            <button class="btn btn-sm btn-outline-success" onclick="exportTableToExcel('history-table')">Excel</button>
+
+            <div class="row mt-4">
+                <div class="col-lg-6 mb-4">
+                    <div class="card shadow-sm">
+                        <div class="card-body">
+                            <canvas id="stockChart"></canvas>
                         </div>
-                        <div class="card-body overflow-auto" style="max-height: 300px;">
-                            <table class="table table-sm" id="history-table">
-                                <thead><tr><th>Fecha</th><th>Tipo</th><th>Prod</th><th>Cant</th><th>Lote</th></tr></thead>
-                                <tbody id="history-body"></tbody>
+                    </div>
+                </div>
+                <div class="col-lg-6">
+                    <div class="card shadow-sm h-100">
+                        <div class="card-header d-flex justify-content-between align-items-center bg-white">
+                            <span class="fw-bold">Histórico Recente</span>
+                            <button class="btn btn-sm btn-outline-success" onclick="exportTableToExcel('history-table')">
+                                <i class="fas fa-file-excel"></i> Excel
+                            </button>
+                        </div>
+                        <div class="card-body p-0 overflow-auto" style="max-height: 300px;">
+                            <table class="table table-hover table-striped mb-0" id="history-table">
+                                <thead class="table-light sticky-top">
+                                    <tr>
+                                        <th>Data</th>
+                                        <th>Tipo</th>
+                                        <th>Produto</th>
+                                        <th>Qtd</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="history-body" class="small"></tbody>
                             </table>
                         </div>
                     </div>
@@ -132,35 +167,67 @@
         </div>
 
         <div id="view-entrada" class="view-section">
-            <h2>📥 Entrada de Mercadería</h2>
-            <div class="row mt-3">
+            <h2 class="mb-4">📥 Entrada de Mercadoria</h2>
+            
+            <div class="row">
                 <div class="col-md-4">
-                    <div class="card p-3 mb-3">
-                        <h5>Registrar Nuevo</h5>
+                    <div class="card p-3 mb-3 border-primary shadow-sm">
+                        <h5 class="text-primary"><i class="fas fa-file-code"></i> Importar XML (NFe)</h5>
+                        <small class="text-muted d-block mb-2">Carregue o arquivo para preencher o estoque automaticamente.</small>
+                        <div class="input-group">
+                            <input type="file" id="xmlFile" class="form-control" accept=".xml">
+                            <button class="btn btn-primary" onclick="processXML()">Carregar</button>
+                        </div>
+                    </div>
+
+                    <div class="card p-3 shadow-sm">
+                        <h5>📝 Entrada Manual</h5>
                         <form id="form-entrada">
-                            <div class="mb-2">
-                                <label>Código Barras</label>
+                            <div class="mb-3">
+                                <label class="form-label">Código de Barras</label>
                                 <div class="input-group">
-                                    <input type="text" id="barcode-input" class="form-control" placeholder="Escanear..." required>
-                                    <button class="btn btn-outline-secondary" type="button" onclick="startCamera('barcode-input')">📷</button>
+                                    <input type="text" id="barcode-input" class="form-control" placeholder="Escaneie ou digite..." required>
+                                    <button class="btn btn-outline-secondary" type="button" onclick="startCamera('barcode-input')">
+                                        <i class="fas fa-camera"></i>
+                                    </button>
                                 </div>
                             </div>
-                            <div class="mb-2"><label>Descripción</label><input type="text" id="desc-input" class="form-control" required></div>
-                            <div class="mb-2"><label>Cantidad</label><input type="number" id="qty-input" class="form-control" required></div>
-                            <div class="mb-3"><label>Proveedor</label><input type="text" id="provider-input" class="form-control"></div>
-                            <button type="submit" class="btn btn-primary w-100">Guardar</button>
+                            <div class="mb-2">
+                                <label>Descrição do Produto</label>
+                                <input type="text" id="desc-input" class="form-control" required>
+                            </div>
+                            <div class="mb-2">
+                                <label>Quantidade</label>
+                                <input type="number" id="qty-input" class="form-control" required>
+                            </div>
+                            <div class="mb-3">
+                                <label>Fornecedor</label>
+                                <input type="text" id="provider-input" class="form-control">
+                            </div>
+                            <button type="submit" class="btn btn-success w-100">Confirmar Entrada</button>
                         </form>
                     </div>
                 </div>
+                
                 <div class="col-md-8">
-                    <div class="card p-3">
-                        <div class="d-flex justify-content-between mb-2">
-                            <h5>Stock Materia Prima</h5>
-                            <button class="btn btn-success btn-sm" onclick="exportTableToExcel('raw-table')">Descargar Excel</button>
+                    <div class="card p-3 shadow-sm">
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <h5 class="mb-0">Estoque de Matéria Prima</h5>
+                            <button class="btn btn-sm btn-outline-success" onclick="exportTableToExcel('raw-table')">
+                                <i class="fas fa-download"></i> Baixar Relatório
+                            </button>
                         </div>
                         <div class="table-responsive">
-                            <table class="table table-hover" id="raw-table">
-                                <thead><tr><th>Código</th><th>Descripción</th><th>Cant.</th><th>Lote</th><th>Proveedor</th></tr></thead>
+                            <table class="table table-hover align-middle" id="raw-table">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th>Cód. Barras</th>
+                                        <th>Descrição</th>
+                                        <th>Qtd.</th>
+                                        <th>Lote Interno</th>
+                                        <th>Fornecedor</th>
+                                    </tr>
+                                </thead>
                                 <tbody id="raw-body"></tbody>
                             </table>
                         </div>
@@ -170,28 +237,40 @@
         </div>
 
         <div id="view-producao" class="view-section">
-            <h2>⚙️ Línea de Producción</h2>
-            <div class="card p-4 mb-4 mt-3">
-                <h4>Iniciar Lote de Producción</h4>
+            <h2 class="mb-4">⚙️ Linha de Produção</h2>
+            
+            <div class="card p-4 mb-4 border-warning shadow-sm">
+                <h4 class="text-warning-emphasis">Início de Ordem de Produção</h4>
                 <div class="row g-3 align-items-end">
                     <div class="col-md-6">
-                        <label>Materia Prima (Disponible)</label>
+                        <label class="form-label">Selecionar Matéria Prima (Disponível)</label>
                         <select id="raw-select" class="form-select"></select>
                     </div>
                     <div class="col-md-3">
-                        <label>Cantidad a Usar</label>
+                        <label class="form-label">Quantidade a Utilizar</label>
                         <input type="number" id="qty-prod" class="form-control" placeholder="0">
                     </div>
                     <div class="col-md-3">
-                        <button onclick="startProduction()" class="btn btn-warning w-100">Iniciar Proceso</button>
+                        <button onclick="startProduction()" class="btn btn-warning w-100 fw-bold">
+                            <i class="fas fa-play"></i> Iniciar Lote
+                        </button>
                     </div>
                 </div>
             </div>
-            <div class="card p-3">
-                <h4>Producción en Curso</h4>
+
+            <div class="card p-3 shadow-sm">
+                <h4>Lotes em Processamento</h4>
                 <div class="table-responsive">
-                    <table class="table">
-                        <thead><tr><th>Lote Prod</th><th>Material</th><th>Cant. Inicial</th><th>Inicio</th><th>Acción</th></tr></thead>
+                    <table class="table align-middle">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Lote Prod.</th>
+                                <th>Material Base</th>
+                                <th>Qtd. Usada</th>
+                                <th>Hora Início</th>
+                                <th>Ação</th>
+                            </tr>
+                        </thead>
                         <tbody id="production-body"></tbody>
                     </table>
                 </div>
@@ -199,32 +278,57 @@
         </div>
 
         <div id="view-acabado" class="view-section">
-            <h2>✅ Stock Acabado</h2>
-            <div class="card p-3 mt-3">
-                <table class="table table-striped">
-                    <thead><tr><th>Lote</th><th>Producto</th><th>Stock</th><th>Fecha</th><th>Acciones</th></tr></thead>
+            <h2 class="mb-4">✅ Estoque Acabado</h2>
+            <div class="card p-3 shadow-sm">
+                <div class="alert alert-info">
+                    <i class="fas fa-info-circle"></i> Aqui estão os produtos prontos para serem enviados ao cliente.
+                </div>
+                <table class="table table-striped align-middle">
+                    <thead>
+                        <tr>
+                            <th>Lote Final</th>
+                            <th>Produto</th>
+                            <th>Estoque</th>
+                            <th>Data Finalização</th>
+                            <th>Ações</th>
+                        </tr>
+                    </thead>
                     <tbody id="finished-body"></tbody>
                 </table>
             </div>
         </div>
 
         <div id="view-saida" class="view-section">
-            <h2>🚚 Despacho y Salida</h2>
-            <div class="card p-4 mt-3 col-md-8 mx-auto">
-                <h4 class="text-danger border-bottom pb-2">Registrar Salida Definitiva</h4>
-                <div class="mb-3 mt-3">
-                    <label>Seleccionar Lote Acabado</label>
-                    <select id="dispatch-select" class="form-select"></select>
+            <h2 class="mb-4">🚚 Expedição e Saída</h2>
+            
+            <div class="row justify-content-center">
+                <div class="col-md-8">
+                    <div class="card p-4 shadow border-danger">
+                        <h4 class="text-danger border-bottom pb-3 mb-3">
+                            <i class="fas fa-sign-out-alt"></i> Registrar Saída Definitiva
+                        </h4>
+                        
+                        <div class="mb-3">
+                            <label class="form-label">Selecione o Lote (Produto Acabado)</label>
+                            <select id="dispatch-select" class="form-select"></select>
+                        </div>
+                        
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Quantidade de Saída</label>
+                                <input type="number" id="qty-out" class="form-control">
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Cliente / Destino</label>
+                                <input type="text" id="destination" class="form-control" placeholder="Ex: Mercado Central">
+                            </div>
+                        </div>
+
+                        <button onclick="processExit()" class="btn btn-danger w-100 btn-lg mt-2">
+                            CONFIRMAR BAIXA NO ESTOQUE
+                        </button>
+                    </div>
                 </div>
-                <div class="mb-3">
-                    <label>Cantidad de Salida</label>
-                    <input type="number" id="qty-out" class="form-control">
-                </div>
-                <div class="mb-3">
-                    <label>Cliente / Destino</label>
-                    <input type="text" id="destination" class="form-control">
-                </div>
-                <button onclick="processExit()" class="btn btn-danger w-100 btn-lg">CONFIRMAR SALIDA</button>
             </div>
         </div>
     </div>
@@ -233,11 +337,12 @@
         <div class="modal-dialog">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h5 class="modal-title">Escanear Código</h5>
+                    <h5 class="modal-title">Leitor de Código de Barras</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                 </div>
-                <div class="modal-body">
-                    <div id="reader" style="width: 100%"></div>
+                <div class="modal-body text-center">
+                    <div id="reader" style="width: 100%; max-width: 400px; margin: auto;"></div>
+                    <p class="text-muted mt-2">Aponte a câmera para o código</p>
                 </div>
             </div>
         </div>
@@ -246,8 +351,8 @@
     <div id="printable-area"></div>
 
     <script>
-        // --- 1. CONFIGURACIÓN Y STORAGE ---
-        const DB_KEYS = { RAW: 'stock_raw', PROD: 'stock_prod', FINISHED: 'stock_finished', HISTORY: 'stock_history' };
+        // --- 1. BANCO DE DADOS (LOCALSTORAGE) ---
+        const DB_KEYS = { RAW: 'estoque_mp', PROD: 'estoque_prod', FINISHED: 'estoque_acabado', HISTORY: 'historico_geral' };
         let html5QrCode;
         let chartInstance = null;
 
@@ -260,34 +365,32 @@
                 Storage.save(key, data);
             },
             log: (type, prod, qty, batch, details = '') => {
-                const entry = { id: Date.now(), date: new Date().toLocaleString(), type, prod, qty, batch, details };
+                const entry = { id: Date.now(), date: new Date().toLocaleString('pt-BR'), type, prod, qty, batch, details };
                 Storage.add(DB_KEYS.HISTORY, entry);
             }
         };
 
-        // --- 2. NAVEGACIÓN Y UI ---
+        // --- 2. INICIALIZAÇÃO E NAVEGAÇÃO ---
         document.addEventListener('DOMContentLoaded', () => {
-            showView('dashboard'); // Carga inicial
+            showView('dashboard');
             setupMobileMenu();
         });
 
         function showView(viewId) {
-            // Ocultar todas las secciones
+            // Esconde todas as telas
             document.querySelectorAll('.view-section').forEach(el => el.classList.remove('active'));
             document.querySelectorAll('#sidebar .list-group-item').forEach(el => el.classList.remove('active'));
             
-            // Mostrar seleccionada
+            // Mostra a tela escolhida
             document.getElementById(`view-${viewId}`).classList.add('active');
             
-            // Highlight menú
-            const menuItems = document.querySelectorAll('#sidebar .list-group-item');
-            if(viewId === 'dashboard') menuItems[0].classList.add('active');
-            if(viewId === 'entrada') menuItems[1].classList.add('active');
-            if(viewId === 'producao') menuItems[2].classList.add('active');
-            if(viewId === 'acabado') menuItems[3].classList.add('active');
-            if(viewId === 'saida') menuItems[4].classList.add('active');
+            // Ativa o menu correspondente
+            const menuMap = { 'dashboard':0, 'entrada':1, 'producao':2, 'acabado':3, 'saida':4 };
+            if(menuMap[viewId] !== undefined) {
+                document.querySelectorAll('#sidebar .list-group-item')[menuMap[viewId]].classList.add('active');
+            }
 
-            // Cargar datos específicos
+            // Carrega dados específicos da tela
             if(viewId === 'dashboard') initDashboard();
             if(viewId === 'entrada') renderTableRaw();
             if(viewId === 'producao') initProductionUI();
@@ -306,7 +409,7 @@
             });
         }
 
-        // --- 3. LÓGICA DASHBOARD ---
+        // --- 3. LÓGICA DO DASHBOARD ---
         function initDashboard() {
             const raw = Storage.get(DB_KEYS.RAW);
             const finished = Storage.get(DB_KEYS.FINISHED);
@@ -319,31 +422,36 @@
             if(chartInstance) chartInstance.destroy();
             
             chartInstance = new Chart(ctx, {
-                type: 'bar',
+                type: 'doughnut',
                 data: {
-                    labels: ['Materia Prima', 'Acabado'],
+                    labels: ['Matéria Prima', 'Produto Acabado'],
                     datasets: [{
-                        label: 'Stock Total',
                         data: [raw.length, finished.length],
                         backgroundColor: ['#0d6efd', '#198754']
                     }]
-                }
+                },
+                options: { maintainAspectRatio: false }
             });
 
-            // Tabla Historial
+            // Tabela Histórico
             const history = Storage.get(DB_KEYS.HISTORY).reverse().slice(0, 10);
             document.getElementById('history-body').innerHTML = history.map(h => `
                 <tr>
                     <td>${h.date}</td>
-                    <td><span class="badge bg-${h.type==='ENTRADA'?'primary':h.type==='SALIDA_FINAL'?'danger':'warning'}">${h.type}</span></td>
+                    <td><span class="badge bg-${getBadgeColor(h.type)}">${h.type}</span></td>
                     <td>${h.prod}</td>
                     <td>${h.qty}</td>
-                    <td>${h.batch}</td>
                 </tr>
             `).join('');
         }
 
-        // --- 4. LÓGICA ENTRADA ---
+        function getBadgeColor(type) {
+            if(type === 'ENTRADA') return 'primary';
+            if(type === 'SAIDA_FINAL') return 'danger';
+            return 'warning';
+        }
+
+        // --- 4. ENTRADA E XML ---
         document.getElementById('form-entrada').addEventListener('submit', (e) => {
             e.preventDefault();
             const item = {
@@ -353,14 +461,74 @@
                 qty: parseInt(document.getElementById('qty-input').value),
                 provider: document.getElementById('provider-input').value,
                 batch: 'MP-' + Date.now().toString().slice(-6),
-                date: new Date().toLocaleString()
+                date: new Date().toLocaleString('pt-BR')
             };
             Storage.add(DB_KEYS.RAW, item);
             Storage.log('ENTRADA', item.desc, item.qty, item.batch);
-            alert(`✅ Entrada registrada. Lote: ${item.batch}`);
+            alert(`✅ Entrada registrada com sucesso!\nLote Gerado: ${item.batch}`);
             e.target.reset();
             renderTableRaw();
         });
+
+        // FUNÇÃO DE IMPORTAÇÃO XML
+        function processXML() {
+            const fileInput = document.getElementById('xmlFile');
+            const file = fileInput.files[0];
+
+            if (!file) {
+                alert("⚠️ Por favor, selecione um arquivo XML primeiro.");
+                return;
+            }
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const xmlContent = e.target.result;
+                const parser = new DOMParser();
+                const xmlDoc = parser.parseFromString(xmlContent, "text/xml");
+
+                // --- ATENÇÃO: AJUSTE AS TAGS ABAIXO CONFORME SEU XML ---
+                // Procure no seu arquivo XML qual é a palavra que envolve cada item. 
+                // Exemplo comum em NFe brasileira: 'det' ou 'prod'
+                let items = xmlDoc.getElementsByTagName("prod"); 
+                if(items.length === 0) items = xmlDoc.getElementsByTagName("item"); // Tentativa alternativa
+
+                let contador = 0;
+                for (let i = 0; i < items.length; i++) {
+                    const getVal = (tag) => {
+                        const node = items[i].getElementsByTagName(tag)[0];
+                        return node ? node.textContent : "";
+                    };
+
+                    // Mapeamento (Tente encontrar essas tags no seu XML)
+                    // cProd = Código Produto | xProd = Descrição | qCom = Quantidade
+                    const codigo = getVal("cProd") || getVal("codigo") || "SEM-COD";
+                    const descricao = getVal("xProd") || getVal("descricao") || "Produto Importado";
+                    const quantidade = parseInt(getVal("qCom")) || parseInt(getVal("quantidade")) || 0;
+
+                    if(quantidade > 0) {
+                        const novoItem = {
+                            id: Date.now() + i,
+                            barcode: codigo,
+                            desc: descricao,
+                            qty: quantidade,
+                            provider: "Importado via XML",
+                            batch: 'XML-' + Date.now(),
+                            date: new Date().toLocaleString('pt-BR')
+                        };
+                        Storage.add(DB_KEYS.RAW, novoItem);
+                        contador++;
+                    }
+                }
+
+                if(contador > 0) {
+                    alert(`✅ Sucesso! ${contador} produtos foram importados do XML.`);
+                    renderTableRaw();
+                } else {
+                    alert("⚠️ Nenhum produto encontrado. Verifique se as tags do XML (cProd, xProd) estão corretas no código.");
+                }
+            };
+            reader.readAsText(file);
+        }
 
         function renderTableRaw() {
             const data = Storage.get(DB_KEYS.RAW);
@@ -369,11 +537,16 @@
             `).join('');
         }
 
-        // --- 5. LÓGICA PRODUCCIÓN ---
+        // --- 5. PRODUÇÃO ---
         function initProductionUI() {
             const raw = Storage.get(DB_KEYS.RAW).filter(i => i.qty > 0);
             const select = document.getElementById('raw-select');
-            select.innerHTML = raw.map(i => `<option value="${i.id}">${i.desc} (Disp: ${i.qty})</option>`).join('');
+            
+            if(raw.length === 0) {
+                select.innerHTML = '<option>Sem matéria prima disponível</option>';
+            } else {
+                select.innerHTML = raw.map(i => `<option value="${i.id}">${i.desc} (Disp: ${i.qty}) - Lote: ${i.batch}</option>`).join('');
+            }
             renderProductionTable();
         }
 
@@ -381,46 +554,51 @@
             const rawId = document.getElementById('raw-select').value;
             const qty = parseInt(document.getElementById('qty-prod').value);
             
-            if(!rawId || isNaN(qty) || qty <= 0) return alert('Datos inválidos');
+            if(!rawId || isNaN(qty) || qty <= 0) return alert('❌ Preencha uma quantidade válida.');
 
             let rawData = Storage.get(DB_KEYS.RAW);
             let itemIdx = rawData.findIndex(i => i.id == rawId);
             
-            if(itemIdx === -1 || rawData[itemIdx].qty < qty) return alert('Stock insuficiente');
+            if(itemIdx === -1 || rawData[itemIdx].qty < qty) return alert('⚠️ Estoque insuficiente para essa produção.');
 
-            // Descontar MP
+            // Debitar MP
             rawData[itemIdx].qty -= qty;
             Storage.save(DB_KEYS.RAW, rawData);
 
-            // Crear Lote Producción
+            // Criar Ordem
             const prodItem = {
                 id: Date.now(),
                 rawDesc: rawData[itemIdx].desc,
                 qtyUsed: qty,
                 batch: 'PROD-' + Date.now().toString().slice(-6),
-                status: 'PROCESO',
-                start: new Date().toLocaleString()
+                status: 'PROCESSO',
+                start: new Date().toLocaleString('pt-BR')
             };
             Storage.add(DB_KEYS.PROD, prodItem);
-            Storage.log('PRODUCCION', prodItem.rawDesc, qty, prodItem.batch, 'Inicio');
+            Storage.log('PRODUCAO', prodItem.rawDesc, qty, prodItem.batch, 'Início Produção');
             
-            generateLabel(prodItem.batch, `PROD: ${prodItem.rawDesc}`);
-            initProductionUI(); // Refrescar
+            // Gerar etiqueta do processo
+            generateLabel(prodItem.batch, `EM PROCESSO: ${prodItem.rawDesc}`);
+            alert(`✅ Produção Iniciada!\nEtiqueta de lote ${prodItem.batch} gerada.`);
+            initProductionUI();
         }
 
         function renderProductionTable() {
             const prods = Storage.get(DB_KEYS.PROD).filter(p => p.status === 'PROCESO');
             document.getElementById('production-body').innerHTML = prods.map(p => `
                 <tr>
-                    <td>${p.batch}</td><td>${p.rawDesc}</td><td>${p.qtyUsed}</td><td>${p.start}</td>
-                    <td><button class="btn btn-success btn-sm" onclick="finishProduction(${p.id})">Finalizar</button></td>
+                    <td><strong>${p.batch}</strong></td>
+                    <td>${p.rawDesc}</td>
+                    <td>${p.qtyUsed}</td>
+                    <td>${p.start}</td>
+                    <td><button class="btn btn-success btn-sm" onclick="finishProduction(${p.id})"><i class="fas fa-check"></i> Finalizar</button></td>
                 </tr>
             `).join('');
         }
 
         window.finishProduction = (id) => {
-            const qtyFinal = prompt("Cantidad FINAL obtenida (Producto Acabado):");
-            const sobras = prompt("Cantidad de Sobras/Residuos:");
+            const qtyFinal = prompt("Quantidade FINAL obtida (Produto Acabado):");
+            const sobras = prompt("Quantidade de Sobras/Resíduos gerados:");
             
             if(qtyFinal && !isNaN(qtyFinal)) {
                 let prods = Storage.get(DB_KEYS.PROD);
@@ -431,28 +609,31 @@
 
                     const finishedItem = {
                         id: Date.now(),
-                        desc: prods[idx].rawDesc + " (FINAL)",
+                        desc: prods[idx].rawDesc + " (ACABADO)",
                         batch: prods[idx].batch,
                         qty: parseInt(qtyFinal),
                         sobras: sobras,
-                        date: new Date().toLocaleString()
+                        date: new Date().toLocaleString('pt-BR')
                     };
                     Storage.add(DB_KEYS.FINISHED, finishedItem);
                     Storage.log('ACABADO', finishedItem.desc, finishedItem.qty, finishedItem.batch, `Sobras: ${sobras}`);
-                    alert("✅ Producción finalizada. Movido a Stock Acabado.");
+                    
+                    alert("✅ Produção Finalizada! Produto movido para Estoque Acabado.");
                     initProductionUI();
                 }
             }
         };
 
-        // --- 6. LÓGICA ACABADO & ETIQUETAS ---
+        // --- 6. ACABADO ---
         function renderFinishedTable() {
             const data = Storage.get(DB_KEYS.FINISHED).filter(i => i.qty > 0);
             document.getElementById('finished-body').innerHTML = data.map(i => `
                 <tr>
                     <td>${i.batch}</td><td>${i.desc}</td><td>${i.qty}</td><td>${i.date}</td>
                     <td>
-                        <button class="btn btn-secondary btn-sm" onclick="generateLabel('${i.batch}','${i.desc}')"><i class="fas fa-print"></i></button>
+                        <button class="btn btn-secondary btn-sm" onclick="generateLabel('${i.batch}','${i.desc}')" title="Imprimir Etiqueta">
+                            <i class="fas fa-print"></i>
+                        </button>
                     </td>
                 </tr>
             `).join('');
@@ -464,18 +645,24 @@
                 <div class="etiqueta">
                     <h3>${text}</h3>
                     <svg id="barcode-svg"></svg>
-                    <p>Fecha: ${new Date().toLocaleDateString()}</p>
+                    <p>Data: ${new Date().toLocaleDateString('pt-BR')}</p>
+                    <p><strong>EliudGestorGCA</strong></p>
                 </div>
             `;
             JsBarcode("#barcode-svg", code);
             window.print();
         }
 
-        // --- 7. LÓGICA SALIDA ---
+        // --- 7. SAÍDA ---
         function initExitUI() {
             const data = Storage.get(DB_KEYS.FINISHED).filter(i => i.qty > 0);
             const select = document.getElementById('dispatch-select');
-            select.innerHTML = data.map(i => `<option value="${i.id}">${i.desc} (Lote: ${i.batch} | Qty: ${i.qty})</option>`).join('');
+            
+            if(data.length === 0) {
+                select.innerHTML = "<option>Nenhum produto acabado em estoque</option>";
+            } else {
+                select.innerHTML = data.map(i => `<option value="${i.id}">${i.desc} (Lote: ${i.batch} | Qtd: ${i.qty})</option>`).join('');
+            }
         }
 
         function processExit() {
@@ -483,7 +670,7 @@
             const qty = parseInt(document.getElementById('qty-out').value);
             const dest = document.getElementById('destination').value;
 
-            if(!id || isNaN(qty)) return alert("Datos incompletos");
+            if(!id || isNaN(qty) || qty <= 0) return alert("❌ Verifique a quantidade.");
 
             let finished = Storage.get(DB_KEYS.FINISHED);
             let idx = finished.findIndex(i => i.id == id);
@@ -491,18 +678,18 @@
             if(idx !== -1 && finished[idx].qty >= qty) {
                 finished[idx].qty -= qty;
                 Storage.save(DB_KEYS.FINISHED, finished);
-                Storage.log('SALIDA_FINAL', finished[idx].desc, qty, finished[idx].batch, `Destino: ${dest}`);
-                alert("🚚 Salida Registrada. Inventario actualizado.");
+                Storage.log('SAIDA_FINAL', finished[idx].desc, qty, finished[idx].batch, `Destino: ${dest}`);
+                alert("🚚 Saída Registrada com Sucesso!\nEstoque atualizado.");
                 initExitUI();
             } else {
-                alert("⛔ Stock insuficiente para esta salida.");
+                alert("⛔ Estoque insuficiente para esta saída.");
             }
         }
 
-        // --- 8. UTILIDADES EXTRAS ---
+        // --- 8. UTILITÁRIOS ---
         function exportTableToExcel(tableID) {
             const wb = XLSX.utils.table_to_book(document.getElementById(tableID));
-            XLSX.writeFile(wb, 'Inventario_WMS.xlsx');
+            XLSX.writeFile(wb, 'Relatorio_EliudGestor.xlsx');
         }
 
         function startCamera(inputId) {
@@ -518,10 +705,11 @@
                     document.getElementById(inputId).value = decodedText;
                     html5QrCode.stop();
                     modal.hide();
+                    alert("Código detectado: " + decodedText);
                 }
             ).catch(err => {
                 console.error(err);
-                alert("Error: Asegúrate de usar HTTPS o localhost para acceder a la cámara.");
+                alert("Erro ao abrir câmera. Use HTTPS ou Localhost.");
                 modal.hide();
             });
 
