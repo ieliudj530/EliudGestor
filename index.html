@@ -5,186 +5,91 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>EliudGestor GCA | Enterprise ERP</title>
     
+    <link rel="stylesheet" href="styles.css">
+
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
     <script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.0/dist/JsBarcode.all.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
-
-    <style>
-        /* --- ESTILO CORPORATIVO 'ENTERPRISE' --- */
-        :root {
-            --primary: #0f172a;       /* Azul Oscuro Profundo */
-            --secondary: #334155;     /* Gris Azulado */
-            --accent: #2563eb;        /* Azul Brillante (Botones) */
-            --success: #10b981;       /* Verde Éxito */
-            --warning: #f59e0b;       /* Naranja Alerta */
-            --danger: #ef4444;        /* Rojo Error */
-            --bg-body: #f1f5f9;       /* Fondo Gris Claro */
-            --sidebar-w: 280px;
-        }
-
-        body { font-family: 'Inter', sans-serif; background-color: var(--bg-body); color: #1e293b; overflow-x: hidden; }
-        
-        /* TRANSICIONES & ANIMACIONES */
-        .fade-in { animation: fadeIn 0.4s ease-in-out; }
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-
-        /* SIDEBAR (MENÚ LATERAL) */
-        #sidebar {
-            width: var(--sidebar-w); height: 100vh; position: fixed; left: 0; top: 0;
-            background: var(--primary); color: #94a3b8; display: flex; flex-direction: column;
-            z-index: 1000; transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-            box-shadow: 4px 0 10px rgba(0,0,0,0.1);
-        }
-        #sidebar .brand { padding: 1.5rem; color: white; border-bottom: 1px solid rgba(255,255,255,0.1); }
-        #sidebar .menu-label { font-size: 0.75rem; text-transform: uppercase; letter-spacing: 1px; padding: 1.5rem 1.5rem 0.5rem; opacity: 0.6; font-weight: 700; }
-        #sidebar .nav-link {
-            padding: 0.9rem 1.5rem; color: inherit; display: flex; align-items: center; text-decoration: none; transition: 0.2s; border-right: 3px solid transparent;
-        }
-        #sidebar .nav-link:hover { background: rgba(255,255,255,0.05); color: white; }
-        #sidebar .nav-link.active { background: rgba(37, 99, 235, 0.1); color: var(--accent); border-right-color: var(--accent); }
-        #sidebar .nav-link i { width: 24px; margin-right: 12px; font-size: 1.1rem; }
-
-        /* MAIN CONTENT */
-        .main-wrapper { margin-left: var(--sidebar-w); min-height: 100vh; display: flex; flex-direction: column; transition: margin 0.3s; }
-        
-        /* TOPBAR (CABECERA) */
-        .topbar {
-            height: 70px; background: white; border-bottom: 1px solid #e2e8f0; display: flex; align-items: center;
-            justify-content: space-between; padding: 0 2rem; position: sticky; top: 0; z-index: 900;
-        }
-        .user-profile { display: flex; align-items: center; gap: 10px; cursor: pointer; padding: 5px 10px; border-radius: 8px; transition: 0.2s; }
-        .user-profile:hover { background: #f8fafc; }
-
-        /* CARDS & UI ELEMENTS */
-        .erp-card { background: white; border-radius: 10px; border: 1px solid #e2e8f0; box-shadow: 0 1px 2px rgba(0,0,0,0.05); padding: 1.5rem; margin-bottom: 1.5rem; }
-        .erp-card h5 { font-weight: 700; color: var(--primary); margin-bottom: 1.2rem; font-size: 1.1rem; }
-        
-        .kpi-box { padding: 1.5rem; border-radius: 10px; color: white; position: relative; overflow: hidden; }
-        .kpi-box h3 { font-size: 2rem; font-weight: 700; margin: 0; }
-        .kpi-box small { opacity: 0.8; text-transform: uppercase; font-size: 0.75rem; letter-spacing: 0.5px; }
-        .kpi-box i { position: absolute; right: 15px; bottom: 15px; font-size: 3rem; opacity: 0.2; }
-
-        /* TABLES */
-        .table-erp thead th { background: #f8fafc; color: #64748b; font-weight: 600; text-transform: uppercase; font-size: 0.75rem; border-bottom: 2px solid #e2e8f0; }
-        .table-erp tbody td { vertical-align: middle; font-size: 0.9rem; color: #334155; padding: 12px; }
-        
-        /* STATUS BADGES */
-        .badge-erp { padding: 5px 10px; border-radius: 20px; font-size: 0.75rem; font-weight: 600; }
-        .bg-pending { background: #fff7ed; color: #c2410c; border: 1px solid #ffedd5; }
-        .bg-ok { background: #f0fdf4; color: #15803d; border: 1px solid #dcfce7; }
-        .bg-info-soft { background: #eff6ff; color: #1d4ed8; border: 1px solid #dbeafe; }
-
-        /* LOGIN OVERLAY */
-        #login-screen {
-            position: fixed; inset: 0; background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
-            z-index: 2000; display: flex; align-items: center; justify-content: center;
-        }
-        .login-box { background: white; padding: 3rem; border-radius: 16px; width: 100%; max-width: 420px; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.5); }
-
-        /* TOAST NOTIFICATIONS */
-        .toast-container { position: fixed; top: 20px; right: 20px; z-index: 3000; }
-
-        /* PRINT STYLE */
-        @media print {
-            #sidebar, .topbar, .no-print { display: none !important; }
-            .main-wrapper { margin: 0; padding: 0; }
-            .print-only { display: block !important; }
-            @page { margin: 0; }
-        }
-
-        /* RESPONSIVE */
-        @media (max-width: 992px) {
-            #sidebar { transform: translateX(-100%); }
-            #sidebar.show { transform: translateX(0); }
-            .main-wrapper { margin-left: 0; }
-        }
-    </style>
 </head>
 <body>
 
-    <div class="toast-container" id="toast-area"></div>
+    <div id="sidebar-overlay" onclick="toggleSidebar()"></div>
+
+    <div class="toast-container position-fixed top-0 end-0 p-3" style="z-index: 3000" id="toast-area"></div>
 
     <div id="login-screen">
         <div class="login-box text-center fade-in">
             <div class="mb-4">
-                <div style="width: 60px; height: 60px; background: var(--accent); border-radius: 12px; display: flex; align-items: center; justify-content: center; margin: 0 auto;">
-                    <i class="fas fa-cubes fa-2x text-white"></i>
+                <div class="bg-primary text-white rounded-3 d-inline-flex align-items-center justify-content-center p-3 mb-3 shadow">
+                    <i class="fas fa-cubes fa-2x"></i>
                 </div>
-                <h3 class="mt-3 fw-bold text-dark">EliudGestor GCA</h3>
-                <p class="text-muted">ERP Industrial & WMS</p>
+                <h3 class="fw-bold text-dark">EliudGestor GCA</h3>
+                <p class="text-muted">ERP Industrial Enterprise</p>
             </div>
             <form id="login-form">
                 <div class="form-floating mb-3 text-start">
-                    <input type="text" class="form-control" id="u-name" placeholder="User" required value="admin">
+                    <input type="text" class="form-control" id="u-name" required value="admin">
                     <label>Usuário Corporativo</label>
                 </div>
                 <div class="form-floating mb-4 text-start">
-                    <input type="password" class="form-control" id="u-pass" placeholder="Pass" required value="1234">
+                    <input type="password" class="form-control" id="u-pass" required value="1234">
                     <label>Senha de Acesso</label>
                 </div>
                 <button type="submit" class="btn btn-primary w-100 py-3 fw-bold shadow-lg" id="btn-login">
-                    <i class="fas fa-lock me-2"></i> ACESSAR SISTEMA
+                    <i class="fas fa-sign-in-alt me-2"></i> ACESSAR SISTEMA
                 </button>
             </form>
-            <div class="mt-4 text-muted small">v.3.5.0 Enterprise Edition</div>
+            <div class="mt-4 text-muted small border-top pt-3">Demo: admin / 1234</div>
         </div>
     </div>
 
     <nav id="sidebar">
-        <div class="brand d-flex align-items-center gap-2">
-            <i class="fas fa-layer-group fa-lg text-primary bg-white p-2 rounded"></i>
-            <div>
-                <h6 class="m-0 fw-bold">EliudGestor</h6>
-                <small style="font-size: 0.7rem; opacity: 0.7;">GCA TEXTIL LTDA</small>
+        <div class="p-4 border-bottom border-secondary d-flex align-items-center justify-content-between">
+            <div class="d-flex align-items-center gap-3">
+                <i class="fas fa-layer-group fa-lg text-info"></i>
+                <div><h6 class="m-0 fw-bold text-white">EliudGestor</h6><small style="opacity:0.6;">GCA TEXTIL</small></div>
             </div>
+            <button class="btn btn-sm btn-outline-secondary d-lg-none border-0 text-white" onclick="toggleSidebar()">
+                <i class="fas fa-times fa-lg"></i>
+            </button>
         </div>
 
-        <div class="menu-label">Gestão de Materiais</div>
-        <a href="#" class="nav-link active" onclick="loadView('dashboard')"><i class="fas fa-chart-pie"></i> Dashboard</a>
-        <a href="#" class="nav-link" onclick="loadView('entrada')"><i class="fas fa-dolly"></i> Entrada (NFe)</a>
-        <a href="#" class="nav-link" onclick="loadView('estoque')"><i class="fas fa-boxes"></i> Consultar Estoque</a>
+        <div class="py-3 flex-grow-1 overflow-auto">
+            <small class="text-uppercase text-muted fw-bold px-4 mb-2 d-block" style="font-size: 0.7rem;">Módulos</small>
+            <a class="nav-link active" onclick="loadView('dashboard')"><i class="fas fa-chart-pie me-3"></i> Dashboard</a>
+            <a class="nav-link" onclick="loadView('entrada')"><i class="fas fa-dolly me-3"></i> Entrada (NFe)</a>
+            <a class="nav-link" onclick="loadView('estoque')"><i class="fas fa-boxes me-3"></i> Estoque</a>
+            <div class="my-2 border-top border-secondary opacity-25"></div>
+            <a class="nav-link" onclick="loadView('producao')"><i class="fas fa-industry me-3"></i> Produção</a>
+            <a class="nav-link" onclick="loadView('acabado')"><i class="fas fa-clipboard-check me-3"></i> Acabados</a>
+            <div class="my-2 border-top border-secondary opacity-25"></div>
+            <a class="nav-link" onclick="loadView('saida')"><i class="fas fa-shipping-fast me-3"></i> Expedição</a>
+        </div>
 
-        <div class="menu-label">Industrial</div>
-        <a href="#" class="nav-link" onclick="loadView('producao')"><i class="fas fa-industry"></i> Ordem de Produção</a>
-        <a href="#" class="nav-link" onclick="loadView('acabado')"><i class="fas fa-clipboard-check"></i> Produtos Acabados</a>
-
-        <div class="mt-auto p-3">
-            <div class="card bg-dark border-secondary p-2">
-                <small class="text-muted d-block mb-1"><i class="fas fa-server me-1"></i> Status do Servidor</small>
-                <div class="d-flex align-items-center gap-2">
-                    <div style="width: 8px; height: 8px; background: #10b981; border-radius: 50%;"></div>
-                    <span class="text-white small fw-bold">Online</span>
-                </div>
-            </div>
+        <div class="p-3 bg-black bg-opacity-25">
+            <button class="btn btn-outline-secondary w-100 text-light btn-sm" onclick="logout()"><i class="fas fa-power-off me-2"></i> Encerrar Sessão</button>
         </div>
     </nav>
 
     <div class="main-wrapper" id="app-content" style="filter: blur(5px);">
         
-        <header class="topbar">
+        <header class="bg-white border-bottom px-4 py-3 d-flex justify-content-between align-items-center sticky-top shadow-sm">
             <div class="d-flex align-items-center gap-3">
-                <button class="btn btn-outline-secondary d-lg-none" onclick="toggleSidebar()"><i class="fas fa-bars"></i></button>
-                <h5 class="m-0 fw-bold text-secondary" id="page-title">Dashboard Geral</h5>
+                <button class="btn btn-light d-lg-none text-primary" onclick="toggleSidebar()"><i class="fas fa-bars fa-lg"></i></button>
+                <h5 class="m-0 fw-bold text-secondary" id="page-title">Dashboard Executivo</h5>
             </div>
-            
-            <div class="d-flex align-items-center gap-4">
-                <div class="position-relative cursor-pointer">
-                    <i class="far fa-bell fa-lg text-secondary"></i>
-                    <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger" style="font-size: 0.6rem;">3</span>
+            <div class="d-flex align-items-center gap-3">
+                <div class="text-end d-none d-md-block line-height-sm">
+                    <div class="fw-bold small text-dark">Administrador</div>
+                    <small class="text-muted" style="font-size: 0.75rem;">Gerente</small>
                 </div>
-                <div class="user-profile" onclick="logout()">
-                    <div class="text-end d-none d-md-block">
-                        <div class="fw-bold small text-dark">Administrador</div>
-                        <div class="text-muted" style="font-size: 0.7rem;">Gerente Industrial</div>
-                    </div>
-                    <div class="bg-primary text-white rounded-circle d-flex align-items-center justify-content-center fw-bold" style="width: 35px; height: 35px;">AD</div>
-                </div>
+                <div class="bg-primary text-white rounded-circle d-flex align-items-center justify-content-center fw-bold shadow-sm" style="width: 40px; height: 40px;">AD</div>
             </div>
         </header>
 
@@ -192,106 +97,53 @@
 
             <div id="view-dashboard" class="view-section fade-in">
                 <div class="row g-4 mb-4">
-                    <div class="col-md-4">
-                        <div class="kpi-box bg-primary">
-                            <small>Matéria Prima em Estoque</small>
-                            <h3 id="kpi-raw">0</h3>
-                            <div class="mt-2 small"><i class="fas fa-arrow-up"></i> 12% vs mês anterior</div>
-                            <i class="fas fa-cubes"></i>
-                        </div>
-                    </div>
-                    <div class="col-md-4">
-                        <div class="kpi-box" style="background: var(--success);">
-                            <small>BigBags Produzidos (Mês)</small>
-                            <h3 id="kpi-finished">0</h3>
-                            <div class="mt-2 small"><i class="fas fa-check"></i> Meta: 5.000 un</div>
-                            <i class="fas fa-clipboard-check"></i>
-                        </div>
-                    </div>
-                    <div class="col-md-4">
-                        <div class="kpi-box" style="background: var(--warning);">
-                            <small>Eficiência de Material</small>
-                            <h3>98.5%</h3>
-                            <div class="mt-2 small">Perda controlada</div>
-                            <i class="fas fa-chart-line"></i>
-                        </div>
-                    </div>
+                    <div class="col-md-4"><div class="kpi-box bg-primary"><small class="text-uppercase opacity-75 fw-bold">Matéria Prima</small><h2 class="display-5 fw-bold mb-0" id="kpi-raw">0</h2><i class="fas fa-cubes position-absolute end-0 bottom-0 p-3 opacity-25 fa-3x"></i></div></div>
+                    <div class="col-md-4"><div class="kpi-box bg-success"><small class="text-uppercase opacity-75 fw-bold">Acabados</small><h2 class="display-5 fw-bold mb-0" id="kpi-finished">0</h2><i class="fas fa-check-circle position-absolute end-0 bottom-0 p-3 opacity-25 fa-3x"></i></div></div>
+                    <div class="col-md-4"><div class="kpi-box" style="background: #6366f1;"><small class="text-uppercase opacity-75 fw-bold">Peso Estoque</small><h2 class="display-5 fw-bold mb-0" id="kpi-weight">0 kg</h2><i class="fas fa-weight-hanging position-absolute end-0 bottom-0 p-3 opacity-25 fa-3x"></i></div></div>
                 </div>
-
-                <div class="row g-4">
-                    <div class="col-lg-8">
-                        <div class="erp-card h-100">
-                            <h5>Movimentação Recente</h5>
-                            <canvas id="mainChart" height="100"></canvas>
-                        </div>
-                    </div>
-                    <div class="col-lg-4">
-                        <div class="erp-card h-100">
-                            <div class="d-flex justify-content-between mb-3">
-                                <h5>Lotes Recentes</h5>
-                                <button class="btn btn-sm btn-light text-primary fw-bold">Ver Todos</button>
-                            </div>
-                            <div class="list-group list-group-flush small" id="recent-activity">
-                                <div class="text-center text-muted py-4">Carregando dados...</div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
+                <div class="erp-card h-100"><h5 class="text-primary mb-4">Produção Semanal</h5><div style="height: 300px;"><canvas id="mainChart"></canvas></div></div>
             </div>
 
             <div id="view-entrada" class="view-section fade-in" style="display: none;">
-                <div class="row">
-                    <div class="col-12">
-                        <div class="erp-card border-primary" style="border-top-width: 4px;">
-                            <div class="d-flex justify-content-between align-items-center mb-4">
-                                <div>
-                                    <h5 class="mb-1"><i class="fas fa-file-invoice me-2"></i>Recebimento de Mercadoria (NFe)</h5>
-                                    <small class="text-muted">Importação via XML ou Apontamento Manual de Lote</small>
-                                </div>
-                                <div>
-                                    <button class="btn btn-success" onclick="triggerXML()"><i class="fas fa-cloud-upload-alt me-2"></i>Importar XML</button>
-                                    <input type="file" id="xml-input" hidden accept=".xml" onchange="processXML(this)">
-                                </div>
-                            </div>
+                <div class="erp-card border-primary border-start border-0 border-top-0 border-end-0 border-bottom-0" style="border-left-width: 5px !important;">
+                    <div class="d-flex justify-content-between align-items-center mb-4">
+                        <h5 class="mb-1 fw-bold"><i class="fas fa-file-invoice me-2 text-primary"></i>Entrada de NFe (Lote Único)</h5>
+                        <button class="btn btn-success" onclick="triggerXML()"><i class="fas fa-cloud-upload-alt me-2"></i> Importar XML</button>
+                        <input type="file" id="xml-input" hidden accept=".xml" onchange="processXML(this)">
+                    </div>
 
-                            <div class="row g-3 bg-light p-3 rounded mb-3 border">
-                                <div class="col-md-3">
-                                    <label class="form-label small fw-bold">NÚMERO DO LOTE (NF)</label>
-                                    <div class="input-group">
-                                        <input type="text" id="in-batch" class="form-control fw-bold text-uppercase" placeholder="EX: LOTE-2024-X">
-                                        <button class="btn btn-outline-secondary" onclick="openScanner('in-batch')"><i class="fas fa-camera"></i></button>
-                                    </div>
-                                </div>
-                                <div class="col-md-9 d-flex align-items-end justify-content-end">
-                                    <button class="btn btn-primary px-4" onclick="openManualModal()"><i class="fas fa-plus me-2"></i>Adicionar Item Manualmente</button>
+                    <div class="bg-light p-4 rounded-3 border mb-4">
+                        <div class="row g-3 align-items-end">
+                            <div class="col-md-5">
+                                <label class="small fw-bold text-uppercase text-secondary mb-1">Número do Lote (NF)</label>
+                                <div class="input-group">
+                                    <span class="input-group-text bg-white"><i class="fas fa-barcode"></i></span>
+                                    <input type="text" id="in-batch" class="form-control fw-bold text-uppercase" placeholder="EX: LOTE-2024-001">
+                                    <button class="btn btn-primary" onclick="openScanner('in-batch')"><i class="fas fa-camera"></i></button>
                                 </div>
                             </div>
-
-                            <div class="table-responsive">
-                                <table class="table table-erp table-hover">
-                                    <thead>
-                                        <tr>
-                                            <th>Item / Descrição</th>
-                                            <th class="text-center">Qtd (Unid)</th>
-                                            <th class="text-center">Peso Total (kg)</th>
-                                            <th class="text-center">Peso Médio (kg/un)</th>
-                                            <th class="text-center">Tipo</th>
-                                            <th class="text-end">Ações</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody id="temp-entry-body">
-                                        <tr><td colspan="6" class="text-center py-5 text-muted"><i class="fas fa-box-open fa-2x mb-2 d-block opacity-25"></i>Aguardando itens...</td></tr>
-                                    </tbody>
-                                </table>
-                            </div>
-
-                            <div class="d-flex justify-content-end mt-4 pt-3 border-top">
-                                <button class="btn btn-outline-danger me-2" onclick="clearEntry()">Cancelar</button>
-                                <button class="btn btn-success btn-lg shadow" onclick="commitEntry()">
-                                    <i class="fas fa-save me-2"></i> PROCESSAR ENTRADA NO ERP
-                                </button>
-                            </div>
+                            <div class="col-md-7 text-end"><button class="btn btn-outline-primary" onclick="openManualModal()"><i class="fas fa-plus me-2"></i> Manual</button></div>
                         </div>
+                    </div>
+
+                    <div class="table-responsive border rounded-3 mb-4">
+                        <table class="table table-erp table-hover mb-0">
+                            <thead>
+                                <tr>
+                                    <th>Item</th>
+                                    <th class="text-center">Qtd</th>
+                                    <th class="text-center">Peso Total</th>
+                                    <th class="text-center text-primary">Peso Unit.</th>
+                                    <th class="text-center">Tipo</th>
+                                    <th class="text-end">Ação</th>
+                                </tr>
+                            </thead>
+                            <tbody id="temp-entry-body"><tr><td colspan="6" class="text-center py-5 text-muted">A lista está vazia. Aguardando itens...</td></tr></tbody>
+                        </table>
+                    </div>
+                    <div class="d-flex justify-content-end gap-3 pt-3 border-top">
+                        <button class="btn btn-outline-danger px-4" onclick="clearEntry()">Cancelar</button>
+                        <button class="btn btn-success px-4 fw-bold shadow-sm" onclick="commitEntry()"><i class="fas fa-save me-2"></i> PROCESSAR ENTRADA</button>
                     </div>
                 </div>
             </div>
@@ -299,36 +151,29 @@
             <div id="view-producao" class="view-section fade-in" style="display: none;">
                 <div class="row g-4">
                     <div class="col-lg-5">
-                        <div class="erp-card h-100 border-primary" style="border-left-width: 5px;">
-                            <h5><i class="fas fa-cogs me-2"></i>1. Configuração da Ordem</h5>
-                            
+                        <div class="erp-card h-100 border-primary" style="border-left-width: 5px !important; border-top: 0; border-right: 0; border-bottom: 0;">
+                            <h5 class="fw-bold mb-4"><i class="fas fa-cogs me-2"></i>1. Configuração</h5>
                             <div class="mb-4">
-                                <label class="form-label small fw-bold text-secondary">SELECIONAR LOTE DE MATÉRIA PRIMA</label>
-                                <div class="input-group">
-                                    <span class="input-group-text bg-white"><i class="fas fa-search"></i></span>
-                                    <input type="text" id="prod-batch-search" class="form-control" placeholder="Buscar Lote (Ex: LOTE-2024-X)">
-                                    <button class="btn btn-primary" onclick="loadBatchForProd()">CARREGAR</button>
+                                <label class="small fw-bold text-secondary mb-1">SELECIONAR LOTE MP</label>
+                                <div class="input-group input-group-lg">
+                                    <input type="text" id="prod-batch-search" class="form-control" placeholder="Buscar Lote...">
+                                    <button class="btn btn-outline-secondary" onclick="openScanner('prod-batch-search')"><i class="fas fa-camera"></i></button>
+                                    <button class="btn btn-primary px-4" onclick="loadBatchForProd()">CARREGAR</button>
                                 </div>
                             </div>
-
-                            <hr class="my-4">
-
-                            <div id="prod-config-area" class="opacity-50" style="pointer-events: none;">
-                                <div class="mb-3">
-                                    <label class="form-label small fw-bold">QUANTIDADE A PRODUZIR (BAGS)</label>
-                                    <input type="number" id="prod-qty" class="form-control form-control-lg fw-bold text-primary" placeholder="0" oninput="calcProduction()">
+                            <div id="prod-config-area" class="opacity-50" style="pointer-events: none; transition: 0.3s;">
+                                <div class="mb-4">
+                                    <label class="small fw-bold text-secondary mb-1">QUANTIDADE A PRODUZIR</label>
+                                    <div class="input-group input-group-lg"><input type="number" id="prod-qty" class="form-control fw-bold text-primary" placeholder="0" oninput="calcProduction()"><span class="input-group-text">Unidades</span></div>
                                 </div>
-
-                                <div class="card bg-light border-0">
-                                    <div class="card-body">
-                                        <h6 class="text-primary fw-bold" style="font-size: 0.8rem;">INSUMOS AUXILIARES (Cola, Fio)</h6>
-                                        <div class="d-flex gap-2 mb-2">
-                                            <select id="common-item-select" class="form-select form-select-sm"></select>
-                                            <input type="number" id="common-grams" class="form-control form-control-sm" placeholder="g/bag" style="width: 80px;">
-                                            <button class="btn btn-sm btn-secondary" onclick="addCommonItem()">Add</button>
-                                        </div>
-                                        <div id="common-list-display" class="small"></div>
+                                <div class="card bg-light border-0 p-3 rounded-3">
+                                    <h6 class="small fw-bold text-primary mb-3">INSUMOS (Cola/Fio)</h6>
+                                    <div class="d-flex gap-2 mb-2">
+                                        <select id="common-item-select" class="form-select form-select-sm"></select>
+                                        <input type="number" id="common-grams" class="form-control form-control-sm" placeholder="g/bag" style="width: 80px;">
+                                        <button class="btn btn-sm btn-dark" onclick="addCommonItem()"><i class="fas fa-plus"></i></button>
                                     </div>
+                                    <div id="common-list-display" class="small mt-2"></div>
                                 </div>
                             </div>
                         </div>
@@ -336,39 +181,31 @@
 
                     <div class="col-lg-7">
                         <div class="erp-card h-100">
-                            <div class="d-flex justify-content-between align-items-center mb-3">
-                                <h5><i class="fas fa-balance-scale me-2"></i>2. Balanço de Materiais</h5>
-                                <span class="badge bg-secondary" id="active-batch-badge">Nenhum Lote</span>
+                            <div class="d-flex justify-content-between align-items-center mb-4">
+                                <h5 class="fw-bold mb-0"><i class="fas fa-balance-scale me-2"></i>2. Balanço</h5>
+                                <span class="badge bg-secondary p-2" id="active-batch-badge">Nenhum Lote Ativo</span>
                             </div>
 
-                            <div class="table-responsive bg-white border rounded">
+                            <div class="table-responsive border rounded-3 mb-4">
                                 <table class="table table-erp table-sm mb-0">
-                                    <thead>
-                                        <tr>
-                                            <th>Componente</th>
-                                            <th class="text-center">Fator</th>
-                                            <th class="text-center">Consumo Total</th>
-                                            <th class="text-end">Peso Estimado</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody id="prod-calc-body">
-                                        <tr><td colspan="4" class="text-center py-4 text-muted">Aguardando configuração...</td></tr>
-                                    </tbody>
-                                    <tfoot class="table-light fw-bold">
-                                        <tr>
-                                            <td colspan="3" class="text-end">PESO TOTAL ESTIMADO:</td>
-                                            <td class="text-end text-primary" id="total-weight-calc">0.00 kg</td>
-                                        </tr>
-                                    </tfoot>
+                                    <thead><tr><th>Componente</th><th>Fator</th><th>Peso Est.</th><th>Status</th></tr></thead>
+                                    <tbody id="prod-calc-body"><tr><td colspan="4" class="text-center py-5 text-muted">Aguardando configuração...</td></tr></tbody>
+                                    <tfoot class="bg-light fw-bold"><tr><td colspan="3" class="text-end py-3">PESO TOTAL TEÓRICO:</td><td class="text-end py-3 text-primary fs-5" id="total-weight-calc">0.00 kg</td></tr></tfoot>
                                 </table>
                             </div>
 
-                            <div class="mt-4">
-                                <button class="btn btn-success w-100 py-3 fw-bold shadow-sm" id="btn-finish-prod" disabled onclick="finishProduction()">
-                                    <i class="fas fa-check-double me-2"></i> CONFIRMAR E BAIXAR ESTOQUE
-                                </button>
-                                <small class="text-muted d-block text-center mt-2"><i class="fas fa-info-circle me-1"></i> A baixa de estoque é irreversível.</small>
+                            <div class="bg-warning bg-opacity-10 p-3 rounded border border-warning mb-3">
+                                <label class="small fw-bold text-dark text-uppercase mb-1"><i class="fas fa-trash-alt me-1"></i> Resíduos (Opcional)</label>
+                                <div class="input-group">
+                                    <input type="number" step="0.01" id="prod-waste" class="form-control fw-bold" placeholder="0.00">
+                                    <span class="input-group-text">kg</span>
+                                </div>
+                                <small class="text-muted" style="font-size: 0.75rem;">Se não houver sobras para pesar, deixe em 0.</small>
                             </div>
+
+                            <button class="btn btn-secondary w-100 py-3 fw-bold shadow-sm" id="btn-finish-prod" disabled onclick="finishProduction()">
+                                <i class="fas fa-check-double me-2"></i> CONFIRMAR E BAIXAR ESTOQUE
+                            </button>
                         </div>
                     </div>
                 </div>
@@ -376,13 +213,13 @@
 
             <div id="view-estoque" class="view-section fade-in" style="display: none;">
                 <div class="erp-card">
-                    <div class="d-flex justify-content-between mb-3">
-                        <h5>Consulta de Estoque Geral</h5>
-                        <button class="btn btn-sm btn-outline-success" onclick="exportExcel()"><i class="fas fa-file-excel me-2"></i>Exportar XLS</button>
+                    <div class="d-flex justify-content-between align-items-center mb-4">
+                        <h5 class="mb-0 fw-bold">Estoque de Matéria Prima</h5>
+                        <button class="btn btn-outline-success btn-sm" onclick="exportExcel()"><i class="fas fa-file-excel me-2"></i> Excel</button>
                     </div>
-                    <div class="table-responsive">
-                        <table class="table table-erp table-striped table-hover">
-                            <thead><tr><th>Lote</th><th>Item</th><th>Qtd</th><th>Peso Tot.</th><th>Peso Unit.</th><th>Status</th></tr></thead>
+                    <div class="table-responsive border rounded-3">
+                        <table class="table table-erp table-striped table-hover mb-0">
+                            <thead><tr><th>Lote</th><th>Item</th><th>Qtd Disp.</th><th>Peso Tot.</th><th>Peso Unit.</th></tr></thead>
                             <tbody id="stock-body"></tbody>
                         </table>
                     </div>
@@ -391,37 +228,50 @@
 
             <div id="view-acabado" class="view-section fade-in" style="display: none;">
                 <div class="erp-card">
-                    <h5>Histórico de Produtos Acabados</h5>
-                    <div class="table-responsive">
-                        <table class="table table-erp table-hover">
-                            <thead><tr><th>Data/Hora</th><th>Lote Origem</th><th>Qtd Produzida</th><th>Peso Utilizado</th><th>Eficiência</th></tr></thead>
+                    <h5 class="mb-4 fw-bold">Histórico de Produção</h5>
+                    <div class="table-responsive border rounded-3">
+                        <table class="table table-erp table-hover mb-0">
+                            <thead><tr><th>Data</th><th>Lote</th><th>Qtd</th><th>Peso Útil</th><th>Status</th></tr></thead>
                             <tbody id="finished-body"></tbody>
                         </table>
                     </div>
                 </div>
             </div>
 
-        </div> </div> <div class="modal fade" id="manualItemModal" tabindex="-1">
-        <div class="modal-dialog">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title fw-bold">Novo Item</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            <div id="view-saida" class="view-section fade-in" style="display: none;">
+                <div class="row justify-content-center">
+                    <div class="col-md-8">
+                        <div class="erp-card border-danger border-start border-0 border-top-0 border-end-0 border-bottom-0" style="border-left-width: 5px !important;">
+                            <h5 class="text-danger mb-4 fw-bold"><i class="fas fa-truck-loading me-2"></i>Expedição / Despacho</h5>
+                            
+                            <div class="mb-3">
+                                <label class="small fw-bold text-uppercase mb-1">Selecione Lote Acabado</label>
+                                <select id="dispatch-select" class="form-select form-select-lg"></select>
+                            </div>
+
+                            <div class="row g-3">
+                                <div class="col-md-6"><label class="small fw-bold text-uppercase mb-1">Quantidade</label><input type="number" id="dispatch-qty" class="form-control form-control-lg" placeholder="0"></div>
+                                <div class="col-md-6"><label class="small fw-bold text-uppercase mb-1">Cliente</label><input type="text" id="dispatch-client" class="form-control form-control-lg" placeholder="Ex: Cliente XYZ"></div>
+                            </div>
+                            <button class="btn btn-danger w-100 mt-5 py-3 fw-bold shadow-sm" onclick="processDispatch()"><i class="fas fa-paper-plane me-2"></i> CONFIRMAR SAÍDA</button>
+                        </div>
+                    </div>
                 </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="manualItemModal" tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header"><h5 class="modal-title fw-bold">Novo Item Manual</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
                 <div class="modal-body">
                     <form id="manual-form">
-                        <div class="mb-2"><label class="small fw-bold">Descrição</label><input type="text" id="m-desc" class="form-control" required></div>
-                        <div class="row g-2 mb-2">
-                            <div class="col"><label class="small fw-bold">Qtd</label><input type="number" id="m-qty" class="form-control" required></div>
-                            <div class="col"><label class="small fw-bold">Peso Total (kg)</label><input type="number" step="0.01" id="m-weight" class="form-control" required></div>
-                        </div>
-                        <div class="mb-2"><label class="small fw-bold">Tipo</label>
-                            <select id="m-type" class="form-select">
-                                <option value="KIT">KIT (Componente BigBag)</option>
-                                <option value="COMUM">COMUM (Insumo/Cola)</option>
-                            </select>
-                        </div>
-                        <button type="submit" class="btn btn-primary w-100 mt-3">Adicionar à Lista</button>
+                        <div class="mb-3"><label class="small fw-bold">Descrição</label><input type="text" id="m-desc" class="form-control" required></div>
+                        <div class="row g-2 mb-3"><div class="col"><label class="small fw-bold">Qtd</label><input type="number" id="m-qty" class="form-control" required></div><div class="col"><label class="small fw-bold">Peso Total (kg)</label><input type="number" step="0.01" id="m-weight" class="form-control"></div></div>
+                        <div class="mb-3"><label class="small fw-bold">Tipo</label><select id="m-type" class="form-select"><option value="KIT">KIT (Componente)</option><option value="COMUM">COMUM (Insumo)</option></select></div>
+                        <div class="alert alert-info small py-2"><i class="fas fa-info-circle"></i> Se não for pesar (ex: Etiquetas), deixe o Peso em 0 ou vazio.</div>
+                        <button type="submit" class="btn btn-primary w-100 mt-2">Confirmar</button>
                     </form>
                 </div>
             </div>
@@ -430,412 +280,13 @@
 
     <div class="modal fade" id="scannerModal" tabindex="-1">
         <div class="modal-dialog modal-dialog-centered">
-            <div class="modal-content bg-dark text-white">
-                <div class="modal-header border-secondary">
-                    <h5 class="modal-title"><i class="fas fa-qrcode me-2"></i>Leitor Óptico</h5>
-                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
-                </div>
-                <div class="modal-body p-0">
-                    <div id="reader" style="width: 100%;"></div>
-                </div>
+            <div class="modal-content bg-dark text-white border-0">
+                <div class="modal-header border-secondary"><h5 class="modal-title fs-6"><i class="fas fa-camera me-2"></i>Leitura de Código</h5><button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button></div>
+                <div class="modal-body p-0 position-relative"><div id="reader" style="width: 100%;"></div></div>
             </div>
         </div>
     </div>
 
-    <script>
-        // --- GESTIÓN DE ESTADO (STORE) ---
-        const Store = {
-            raw: JSON.parse(localStorage.getItem('erp_raw')) || [],
-            finished: JSON.parse(localStorage.getItem('erp_finished')) || [],
-            tempEntry: [], // Buffer de entrada
-            prodContext: { batch: null, kitItems: [], commonItems: [] }, // Contexto de producción
-            
-            save: () => {
-                localStorage.setItem('erp_raw', JSON.stringify(Store.raw));
-                localStorage.setItem('erp_finished', JSON.stringify(Store.finished));
-                Dashboard.render();
-            }
-        };
-
-        // --- UI HELPERS (TOASTS) ---
-        const Toast = {
-            show: (msg, type = 'info') => {
-                const container = document.getElementById('toast-area');
-                const color = type === 'success' ? '#10b981' : type === 'error' ? '#ef4444' : '#2563eb';
-                const icon = type === 'success' ? 'check-circle' : type === 'error' ? 'exclamation-circle' : 'info-circle';
-                
-                const el = document.createElement('div');
-                el.className = 'toast show align-items-center text-white border-0 mb-2 shadow-lg';
-                el.style.backgroundColor = color;
-                el.innerHTML = `
-                    <div class="d-flex">
-                        <div class="toast-body"><i class="fas fa-${icon} me-2"></i>${msg}</div>
-                        <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>
-                    </div>`;
-                container.appendChild(el);
-                setTimeout(() => el.remove(), 3000);
-            }
-        };
-
-        // --- AUTENTICACIÓN ---
-        document.getElementById('login-form').addEventListener('submit', (e) => {
-            e.preventDefault();
-            const btn = document.getElementById('btn-login');
-            btn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i> Autenticando...';
-            
-            setTimeout(() => { // Simular API delay
-                const u = document.getElementById('u-name').value;
-                const p = document.getElementById('u-pass').value;
-                if(u === 'admin' && p === '1234') {
-                    document.getElementById('login-screen').classList.add('fade-out'); // Animar salida
-                    setTimeout(() => {
-                        document.getElementById('login-screen').style.display = 'none';
-                        document.getElementById('app-content').style.filter = 'none';
-                    }, 500);
-                    Dashboard.render();
-                    Toast.show('Bem-vindo ao EliudGestor Enterprise', 'success');
-                } else {
-                    Toast.show('Credenciais inválidas. Tente admin / 1234', 'error');
-                    btn.innerHTML = '<i class="fas fa-lock me-2"></i> ACESSAR SISTEMA';
-                }
-            }, 1000);
-        });
-        function logout() { location.reload(); }
-
-        // --- NAVEGACIÓN ---
-        function loadView(viewId) {
-            document.querySelectorAll('.view-section').forEach(el => el.style.display = 'none');
-            document.getElementById(`view-${viewId}`).style.display = 'block';
-            
-            // Sidebar Active State
-            document.querySelectorAll('.nav-link').forEach(el => el.classList.remove('active'));
-            // Lógica simple para active class...
-            
-            // Header Title Update
-            const titles = {
-                'dashboard': 'Dashboard Executivo',
-                'entrada': 'Recebimento & NFe',
-                'estoque': 'Consulta de Estoque',
-                'producao': 'Apontamento de Produção',
-                'acabado': 'Histórico de Produção'
-            };
-            document.getElementById('page-title').innerText = titles[viewId];
-            
-            if(viewId === 'estoque') Stock.render();
-            if(viewId === 'acabado') Finished.render();
-            if(viewId === 'producao') Production.updateCommonSelect();
-        }
-        function toggleSidebar() { document.getElementById('sidebar').classList.toggle('show'); }
-
-        // --- MÓDULO: DASHBOARD ---
-        const Dashboard = {
-            render: () => {
-                // KPIs
-                document.getElementById('kpi-raw').innerText = Store.raw.length;
-                const totalFinished = Store.finished.reduce((acc, i) => acc + i.qty, 0);
-                document.getElementById('kpi-finished').innerText = totalFinished;
-
-                // Gráfico (Chart.js)
-                const ctx = document.getElementById('mainChart').getContext('2d');
-                // Destruir anterior si existe (en una app real guardamos la instancia)
-                new Chart(ctx, {
-                    type: 'line',
-                    data: {
-                        labels: ['Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'],
-                        datasets: [{
-                            label: 'Produção Diária',
-                            data: [12, 19, 3, 5, 2, 3], // Datos Ficticios para Demo
-                            borderColor: '#2563eb',
-                            tension: 0.4,
-                            fill: true,
-                            backgroundColor: 'rgba(37, 99, 235, 0.1)'
-                        }]
-                    },
-                    options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } } }
-                });
-
-                // Actividad Reciente (Simulada)
-                const list = document.getElementById('recent-activity');
-                list.innerHTML = Store.finished.slice(-5).reverse().map(i => `
-                    <div class="list-group-item d-flex justify-content-between align-items-center">
-                        <div>
-                            <div class="fw-bold text-dark">Lote ${i.originBatch}</div>
-                            <small class="text-muted">${i.qty} Bags produzidos</small>
-                        </div>
-                        <span class="badge bg-ok">Concluído</span>
-                    </div>
-                `).join('');
-            }
-        };
-
-        // --- MÓDULO: ENTRADA ---
-        const Entry = {
-            addTemp: (item) => {
-                Store.tempEntry.push(item);
-                Entry.renderTemp();
-            },
-            renderTemp: () => {
-                const tbody = document.getElementById('temp-entry-body');
-                if(Store.tempEntry.length === 0) {
-                    tbody.innerHTML = '<tr><td colspan="6" class="text-center py-5 text-muted">Aguardando itens...</td></tr>';
-                    return;
-                }
-                tbody.innerHTML = Store.tempEntry.map((item, idx) => `
-                    <tr>
-                        <td class="fw-bold">${item.desc}</td>
-                        <td class="text-center">${item.qty}</td>
-                        <td class="text-center">${item.totalWeight} kg</td>
-                        <td class="text-center"><span class="badge bg-info-soft">${item.unitWeight.toFixed(4)}</span></td>
-                        <td class="text-center"><small>${item.type}</small></td>
-                        <td class="text-end"><button class="btn btn-sm btn-outline-danger" onclick="Entry.remove(${idx})"><i class="fas fa-trash"></i></button></td>
-                    </tr>
-                `).join('');
-            },
-            remove: (idx) => {
-                Store.tempEntry.splice(idx, 1);
-                Entry.renderTemp();
-            }
-        };
-
-        // Modal Manual
-        function openManualModal() { new bootstrap.Modal(document.getElementById('manualItemModal')).show(); }
-        document.getElementById('manual-form').addEventListener('submit', (e) => {
-            e.preventDefault();
-            const desc = document.getElementById('m-desc').value;
-            const qty = parseInt(document.getElementById('m-qty').value);
-            const w = parseFloat(document.getElementById('m-weight').value);
-            const type = document.getElementById('m-type').value;
-
-            Entry.addTemp({
-                id: Date.now(),
-                desc, qty, totalWeight: w, unitWeight: (w/qty), type
-            });
-            bootstrap.Modal.getInstance(document.getElementById('manualItemModal')).hide();
-            e.target.reset();
-        });
-
-        // XML Simulado
-        function triggerXML() {
-            const batch = document.getElementById('in-batch').value;
-            if(!batch) return Toast.show('Digite o número do Lote/NF antes de importar', 'error');
-            document.getElementById('xml-input').click();
-        }
-        function processXML(input) {
-            if(!input.files[0]) return;
-            // Simulación de carga
-            Toast.show('Processando XML...', 'info');
-            setTimeout(() => {
-                // Datos "Dummy" realistas
-                const items = [
-                    { desc: "Tecido Tubular 180g", qty: 50, totalWeight: 100, unitWeight: 2, type: 'KIT' },
-                    { desc: "Alça Reforçada 5cm", qty: 200, totalWeight: 20, unitWeight: 0.1, type: 'KIT' },
-                    { desc: "Fundo Estrela", qty: 50, totalWeight: 10, unitWeight: 0.2, type: 'KIT' },
-                    { desc: "Cola Vinil", qty: 1, totalWeight: 50, unitWeight: 0, type: 'COMUM' }
-                ];
-                items.forEach(i => Entry.addTemp(i));
-                Toast.show('4 Itens importados da NFe', 'success');
-                input.value = '';
-            }, 800);
-        }
-
-        // Commit (Guardar)
-        function commitEntry() {
-            const batch = document.getElementById('in-batch').value.toUpperCase();
-            if(!batch) return Toast.show('Lote Obrigatório', 'error');
-            if(Store.tempEntry.length === 0) return Toast.show('Lista vazia', 'error');
-
-            const finalItems = Store.tempEntry.map(i => ({ ...i, batch })); // Asigna Lote a todos
-            Store.raw.push(...finalItems);
-            Store.save();
-            
-            // Limpieza
-            Store.tempEntry = [];
-            Entry.renderTemp();
-            document.getElementById('in-batch').value = '';
-            Toast.show(`Lote ${batch} processado com sucesso!`, 'success');
-        }
-        function clearEntry() { Store.tempEntry = []; Entry.renderTemp(); }
-
-        // --- MÓDULO: PRODUCCIÓN ---
-        const Production = {
-            updateCommonSelect: () => {
-                const unique = [...new Set(Store.raw.filter(i => i.type === 'COMUM').map(i => i.desc))];
-                document.getElementById('common-item-select').innerHTML = unique.map(u => `<option value="${u}">${u}</option>`).join('');
-            },
-            calc: () => {
-                const qty = parseInt(document.getElementById('prod-qty').value) || 0;
-                const tbody = document.getElementById('prod-calc-body');
-                let html = '';
-                let totalWeight = 0;
-
-                // 1. Kit Items
-                Store.prodContext.kitItems.forEach(item => {
-                    let factor = 1;
-                    if(item.desc.toLowerCase().includes('alça')) factor = 4;
-                    const needed = qty * factor;
-                    const weight = needed * item.unitWeight;
-                    totalWeight += weight;
-
-                    html += `
-                        <tr>
-                            <td>${item.desc} <span class="badge bg-light text-dark border">Lote: ${item.batch}</span></td>
-                            <td class="text-center">${factor}x</td>
-                            <td class="text-center">${needed} un</td>
-                            <td class="text-end fw-bold">${weight.toFixed(2)} kg</td>
-                        </tr>
-                    `;
-                });
-
-                // 2. Common Items
-                Store.prodContext.commonItems.forEach(item => {
-                    const wKg = (qty * item.grams) / 1000;
-                    totalWeight += wKg;
-                    html += `
-                        <tr style="background: #eff6ff;">
-                            <td>${item.desc} <i class="fas fa-wine-bottle text-primary small ms-1"></i></td>
-                            <td class="text-center">${item.grams} g/bag</td>
-                            <td class="text-center">-</td>
-                            <td class="text-end fw-bold">${wKg.toFixed(3)} kg</td>
-                        </tr>
-                    `;
-                });
-
-                tbody.innerHTML = html || '<tr><td colspan="4" class="text-center py-4">Defina Qtd...</td></tr>';
-                document.getElementById('total-weight-calc').innerText = totalWeight.toFixed(2) + ' kg';
-                
-                // Habilitar botón si hay items y cantidad
-                document.getElementById('btn-finish-prod').disabled = (qty <= 0 || Store.prodContext.kitItems.length === 0);
-            }
-        };
-
-        function loadBatchForProd() {
-            const batch = document.getElementById('prod-batch-search').value.toUpperCase();
-            const items = Store.raw.filter(i => i.batch === batch && i.type === 'KIT');
-            
-            if(items.length === 0) return Toast.show('Lote não encontrado ou inválido', 'error');
-
-            Store.prodContext = { batch, kitItems: items, commonItems: [] };
-            
-            // UI Update
-            document.getElementById('prod-config-area').style.opacity = '1';
-            document.getElementById('prod-config-area').style.pointerEvents = 'all';
-            document.getElementById('active-batch-badge').innerText = batch;
-            document.getElementById('active-batch-badge').className = 'badge bg-primary';
-            Production.updateCommonSelect();
-            Production.calc();
-            Toast.show(`Lote ${batch} carregado. Configure a ordem.`, 'success');
-        }
-
-        function addCommonItem() {
-            const name = document.getElementById('common-item-select').value;
-            const grams = parseFloat(document.getElementById('common-grams').value);
-            if(name && grams) {
-                Store.prodContext.commonItems.push({ desc: name, grams });
-                document.getElementById('common-list-display').innerHTML += `<span class="badge bg-secondary me-1 mb-1">${name}: ${grams}g</span>`;
-                Production.calc();
-            }
-        }
-        
-        function calcProduction() { Production.calc(); } // Shortcut
-
-        function finishProduction() {
-            const qty = parseInt(document.getElementById('prod-qty').value);
-            if(!confirm(`Confirma a produção de ${qty} Bags?`)) return;
-
-            let weightUsed = 0;
-
-            // Consumir Kit (Simulación: Consumimos el lote de la base)
-            Store.prodContext.kitItems.forEach(k => {
-                const idx = Store.raw.findIndex(r => r.id === k.id);
-                if(idx !== -1) {
-                    weightUsed += (k.unitWeight * qty * (k.desc.includes('alça')?4:1));
-                    // Opcional: Remover del stock si se consume todo el lote. 
-                    // Para ERP real, restamos cantidad. Aquí simplificamos.
-                }
-            });
-            
-            // Consumir Comunes
-            Store.prodContext.commonItems.forEach(c => {
-                 weightUsed += (qty * c.grams)/1000;
-                 // Lógica de restar stock común omitida por brevedad, pero iría aquí
-            });
-
-            Store.finished.push({
-                id: Date.now(),
-                date: new Date().toLocaleString(),
-                originBatch: Store.prodContext.batch,
-                qty: qty,
-                weightUsed
-            });
-            Store.save();
-
-            Toast.show('Ordem de Produção Finalizada com Sucesso!', 'success');
-            
-            // Reset UI
-            document.getElementById('prod-qty').value = '';
-            document.getElementById('prod-calc-body').innerHTML = '';
-            document.getElementById('active-batch-badge').innerText = 'Nenhum Lote';
-            document.getElementById('active-batch-badge').className = 'badge bg-secondary';
-            document.getElementById('prod-config-area').style.opacity = '0.5';
-            document.getElementById('prod-config-area').style.pointerEvents = 'none';
-        }
-
-        // --- MÓDULOS DE CONSULTA ---
-        const Stock = {
-            render: () => {
-                const tbody = document.getElementById('stock-body');
-                tbody.innerHTML = Store.raw.map(i => `
-                    <tr>
-                        <td><span class="badge bg-light text-dark border">${i.batch}</span></td>
-                        <td>${i.desc}</td>
-                        <td>${i.qty}</td>
-                        <td>${i.totalWeight.toFixed(2)}</td>
-                        <td>${i.unitWeight.toFixed(4)}</td>
-                        <td><span class="badge bg-ok">Disponível</span></td>
-                    </tr>
-                `).join('');
-            }
-        };
-
-        const Finished = {
-            render: () => {
-                const tbody = document.getElementById('finished-body');
-                tbody.innerHTML = Store.finished.map(i => `
-                    <tr>
-                        <td>${i.date}</td>
-                        <td>${i.originBatch}</td>
-                        <td><strong>${i.qty}</strong></td>
-                        <td>${i.weightUsed.toFixed(2)} kg</td>
-                        <td><span class="text-success"><i class="fas fa-arrow-up"></i> 98%</span></td>
-                    </tr>
-                `).join('');
-            }
-        };
-
-        // Escáner (Simulado)
-        let html5QrCode;
-        function openScanner(targetId) {
-            new bootstrap.Modal(document.getElementById('scannerModal')).show();
-            // Aquí iría la lógica real de Html5Qrcode.start...
-            // Simularemos escaneo exitoso en 2 seg
-            setTimeout(() => {
-                document.getElementById(targetId).value = "LOTE-SCAN-001";
-                bootstrap.Modal.getInstance(document.getElementById('scannerModal')).hide();
-                Toast.show('Código escaneado', 'success');
-            }, 1500);
-        }
-
-        // Export Excel
-        function exportExcel() {
-            const ws = XLSX.utils.json_to_sheet(Store.raw);
-            const wb = XLSX.utils.book_new();
-            XLSX.utils.book_append_sheet(wb, ws, "Estoque");
-            XLSX.writeFile(wb, "EliudGestor_Estoque.xlsx");
-        }
-
-        // INIT
-        Dashboard.render();
-
-    </script>
+    <script src="main.js?v=2"></script>
 </body>
 </html>
