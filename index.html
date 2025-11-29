@@ -1,0 +1,534 @@
+<!DOCTYPE html>
+<html lang="es" data-bs-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WMS Pro - Sistema de Inventario</title>
+    
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
+    <script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.0/dist/JsBarcode.all.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+
+    <style>
+        :root {
+            --primary-color: #0d6efd;
+            --sidebar-width: 250px;
+        }
+
+        body { display: flex; min-height: 100vh; overflow-x: hidden; }
+
+        /* Sidebar Styling */
+        #sidebar {
+            min-width: var(--sidebar-width);
+            max-width: var(--sidebar-width);
+            background: #212529;
+            color: #fff;
+            transition: all 0.3s;
+        }
+        
+        #sidebar.active { margin-left: calc(var(--sidebar-width) * -1); }
+        
+        #sidebar .list-group-item {
+            background: transparent;
+            color: #fff;
+            border: none;
+            padding: 15px 20px;
+            cursor: pointer;
+        }
+        
+        #sidebar .list-group-item:hover { background: #343a40; color: #ffc107; }
+        #sidebar .list-group-item.active { background: #0d6efd; }
+
+        /* Main Content */
+        #content { width: 100%; padding: 20px; transition: all 0.3s; }
+
+        /* Vistas (Tabs) */
+        .view-section { display: none; animation: fadeIn 0.3s; }
+        .view-section.active { display: block; }
+
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+        /* Imprimir Etiquetas */
+        #printable-area { display: none; }
+        
+        @media print {
+            body * { visibility: hidden; }
+            #printable-area, #printable-area * { visibility: visible; }
+            #printable-area {
+                position: absolute; left: 0; top: 0; width: 100%;
+                display: flex; flex-direction: column; align-items: center; justify-content: center;
+            }
+            .etiqueta { border: 2px solid #000; padding: 20px; margin: 10px; text-align: center; }
+        }
+    </style>
+</head>
+<body>
+
+    <nav id="sidebar">
+        <div class="sidebar-header p-3 border-bottom border-secondary">
+            <h3>📦 WMS Pro</h3>
+        </div>
+        <ul class="list-group list-group-flush mt-3">
+            <li class="list-group-item active" onclick="showView('dashboard')"><i class="fas fa-chart-line me-2"></i> Dashboard</li>
+            <li class="list-group-item" onclick="showView('entrada')"><i class="fas fa-box-open me-2"></i> Entrada MP</li>
+            <li class="list-group-item" onclick="showView('producao')"><i class="fas fa-cogs me-2"></i> Producción</li>
+            <li class="list-group-item" onclick="showView('acabado')"><i class="fas fa-check-circle me-2"></i> Stock Acabado</li>
+            <li class="list-group-item" onclick="showView('saida')"><i class="fas fa-truck-loading me-2"></i> Despacho/Salida</li>
+        </ul>
+        <div class="p-3 mt-auto">
+            <button class="btn btn-outline-light w-100" onclick="toggleTheme()">🌙 Modo Oscuro</button>
+        </div>
+    </nav>
+
+    <div id="content">
+        <nav class="navbar navbar-light bg-light mb-4 rounded d-md-none">
+            <div class="container-fluid">
+                <button type="button" id="sidebarCollapse" class="btn btn-primary">
+                    <i class="fas fa-bars"></i>
+                </button>
+            </div>
+        </nav>
+
+        <div id="view-dashboard" class="view-section active">
+            <h2>📊 Panel de Control</h2>
+            <div class="row mt-4">
+                <div class="col-md-6 mb-3">
+                    <div class="card text-white bg-primary">
+                        <div class="card-header">Estoque Bruto (Items)</div>
+                        <div class="card-body"><h1 id="total-raw">0</h1></div>
+                    </div>
+                </div>
+                <div class="col-md-6 mb-3">
+                    <div class="card text-white bg-success">
+                        <div class="card-header">Estoque Acabado (Items)</div>
+                        <div class="card-body"><h1 id="total-finished">0</h1></div>
+                    </div>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-md-6 mb-3">
+                    <div class="card p-3"><canvas id="stockChart"></canvas></div>
+                </div>
+                <div class="col-md-6">
+                    <div class="card">
+                        <div class="card-header d-flex justify-content-between">
+                            Historial Reciente
+                            <button class="btn btn-sm btn-outline-success" onclick="exportTableToExcel('history-table')">Excel</button>
+                        </div>
+                        <div class="card-body overflow-auto" style="max-height: 300px;">
+                            <table class="table table-sm" id="history-table">
+                                <thead><tr><th>Fecha</th><th>Tipo</th><th>Prod</th><th>Cant</th><th>Lote</th></tr></thead>
+                                <tbody id="history-body"></tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div id="view-entrada" class="view-section">
+            <h2>📥 Entrada de Mercadería</h2>
+            <div class="row mt-3">
+                <div class="col-md-4">
+                    <div class="card p-3 mb-3">
+                        <h5>Registrar Nuevo</h5>
+                        <form id="form-entrada">
+                            <div class="mb-2">
+                                <label>Código Barras</label>
+                                <div class="input-group">
+                                    <input type="text" id="barcode-input" class="form-control" placeholder="Escanear..." required>
+                                    <button class="btn btn-outline-secondary" type="button" onclick="startCamera('barcode-input')">📷</button>
+                                </div>
+                            </div>
+                            <div class="mb-2"><label>Descripción</label><input type="text" id="desc-input" class="form-control" required></div>
+                            <div class="mb-2"><label>Cantidad</label><input type="number" id="qty-input" class="form-control" required></div>
+                            <div class="mb-3"><label>Proveedor</label><input type="text" id="provider-input" class="form-control"></div>
+                            <button type="submit" class="btn btn-primary w-100">Guardar</button>
+                        </form>
+                    </div>
+                </div>
+                <div class="col-md-8">
+                    <div class="card p-3">
+                        <div class="d-flex justify-content-between mb-2">
+                            <h5>Stock Materia Prima</h5>
+                            <button class="btn btn-success btn-sm" onclick="exportTableToExcel('raw-table')">Descargar Excel</button>
+                        </div>
+                        <div class="table-responsive">
+                            <table class="table table-hover" id="raw-table">
+                                <thead><tr><th>Código</th><th>Descripción</th><th>Cant.</th><th>Lote</th><th>Proveedor</th></tr></thead>
+                                <tbody id="raw-body"></tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div id="view-producao" class="view-section">
+            <h2>⚙️ Línea de Producción</h2>
+            <div class="card p-4 mb-4 mt-3">
+                <h4>Iniciar Lote de Producción</h4>
+                <div class="row g-3 align-items-end">
+                    <div class="col-md-6">
+                        <label>Materia Prima (Disponible)</label>
+                        <select id="raw-select" class="form-select"></select>
+                    </div>
+                    <div class="col-md-3">
+                        <label>Cantidad a Usar</label>
+                        <input type="number" id="qty-prod" class="form-control" placeholder="0">
+                    </div>
+                    <div class="col-md-3">
+                        <button onclick="startProduction()" class="btn btn-warning w-100">Iniciar Proceso</button>
+                    </div>
+                </div>
+            </div>
+            <div class="card p-3">
+                <h4>Producción en Curso</h4>
+                <div class="table-responsive">
+                    <table class="table">
+                        <thead><tr><th>Lote Prod</th><th>Material</th><th>Cant. Inicial</th><th>Inicio</th><th>Acción</th></tr></thead>
+                        <tbody id="production-body"></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <div id="view-acabado" class="view-section">
+            <h2>✅ Stock Acabado</h2>
+            <div class="card p-3 mt-3">
+                <table class="table table-striped">
+                    <thead><tr><th>Lote</th><th>Producto</th><th>Stock</th><th>Fecha</th><th>Acciones</th></tr></thead>
+                    <tbody id="finished-body"></tbody>
+                </table>
+            </div>
+        </div>
+
+        <div id="view-saida" class="view-section">
+            <h2>🚚 Despacho y Salida</h2>
+            <div class="card p-4 mt-3 col-md-8 mx-auto">
+                <h4 class="text-danger border-bottom pb-2">Registrar Salida Definitiva</h4>
+                <div class="mb-3 mt-3">
+                    <label>Seleccionar Lote Acabado</label>
+                    <select id="dispatch-select" class="form-select"></select>
+                </div>
+                <div class="mb-3">
+                    <label>Cantidad de Salida</label>
+                    <input type="number" id="qty-out" class="form-control">
+                </div>
+                <div class="mb-3">
+                    <label>Cliente / Destino</label>
+                    <input type="text" id="destination" class="form-control">
+                </div>
+                <button onclick="processExit()" class="btn btn-danger w-100 btn-lg">CONFIRMAR SALIDA</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="scannerModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Escanear Código</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div id="reader" style="width: 100%"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="printable-area"></div>
+
+    <script>
+        // --- 1. CONFIGURACIÓN Y STORAGE ---
+        const DB_KEYS = { RAW: 'stock_raw', PROD: 'stock_prod', FINISHED: 'stock_finished', HISTORY: 'stock_history' };
+        let html5QrCode;
+        let chartInstance = null;
+
+        const Storage = {
+            get: (key) => JSON.parse(localStorage.getItem(key)) || [],
+            save: (key, data) => localStorage.setItem(key, JSON.stringify(data)),
+            add: (key, item) => {
+                const data = Storage.get(key);
+                data.push(item);
+                Storage.save(key, data);
+            },
+            log: (type, prod, qty, batch, details = '') => {
+                const entry = { id: Date.now(), date: new Date().toLocaleString(), type, prod, qty, batch, details };
+                Storage.add(DB_KEYS.HISTORY, entry);
+            }
+        };
+
+        // --- 2. NAVEGACIÓN Y UI ---
+        document.addEventListener('DOMContentLoaded', () => {
+            showView('dashboard'); // Carga inicial
+            setupMobileMenu();
+        });
+
+        function showView(viewId) {
+            // Ocultar todas las secciones
+            document.querySelectorAll('.view-section').forEach(el => el.classList.remove('active'));
+            document.querySelectorAll('#sidebar .list-group-item').forEach(el => el.classList.remove('active'));
+            
+            // Mostrar seleccionada
+            document.getElementById(`view-${viewId}`).classList.add('active');
+            
+            // Highlight menú
+            const menuItems = document.querySelectorAll('#sidebar .list-group-item');
+            if(viewId === 'dashboard') menuItems[0].classList.add('active');
+            if(viewId === 'entrada') menuItems[1].classList.add('active');
+            if(viewId === 'producao') menuItems[2].classList.add('active');
+            if(viewId === 'acabado') menuItems[3].classList.add('active');
+            if(viewId === 'saida') menuItems[4].classList.add('active');
+
+            // Cargar datos específicos
+            if(viewId === 'dashboard') initDashboard();
+            if(viewId === 'entrada') renderTableRaw();
+            if(viewId === 'producao') initProductionUI();
+            if(viewId === 'acabado') renderFinishedTable();
+            if(viewId === 'saida') initExitUI();
+        }
+
+        function toggleTheme() {
+            const html = document.documentElement;
+            html.setAttribute('data-bs-theme', html.getAttribute('data-bs-theme') === 'dark' ? 'light' : 'dark');
+        }
+
+        function setupMobileMenu() {
+            document.getElementById('sidebarCollapse').addEventListener('click', () => {
+                document.getElementById('sidebar').classList.toggle('active');
+            });
+        }
+
+        // --- 3. LÓGICA DASHBOARD ---
+        function initDashboard() {
+            const raw = Storage.get(DB_KEYS.RAW);
+            const finished = Storage.get(DB_KEYS.FINISHED);
+            
+            document.getElementById('total-raw').innerText = raw.reduce((acc, i) => acc + parseInt(i.qty), 0);
+            document.getElementById('total-finished').innerText = finished.reduce((acc, i) => acc + parseInt(i.qty), 0);
+            
+            // Gráfico
+            const ctx = document.getElementById('stockChart').getContext('2d');
+            if(chartInstance) chartInstance.destroy();
+            
+            chartInstance = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: ['Materia Prima', 'Acabado'],
+                    datasets: [{
+                        label: 'Stock Total',
+                        data: [raw.length, finished.length],
+                        backgroundColor: ['#0d6efd', '#198754']
+                    }]
+                }
+            });
+
+            // Tabla Historial
+            const history = Storage.get(DB_KEYS.HISTORY).reverse().slice(0, 10);
+            document.getElementById('history-body').innerHTML = history.map(h => `
+                <tr>
+                    <td>${h.date}</td>
+                    <td><span class="badge bg-${h.type==='ENTRADA'?'primary':h.type==='SALIDA_FINAL'?'danger':'warning'}">${h.type}</span></td>
+                    <td>${h.prod}</td>
+                    <td>${h.qty}</td>
+                    <td>${h.batch}</td>
+                </tr>
+            `).join('');
+        }
+
+        // --- 4. LÓGICA ENTRADA ---
+        document.getElementById('form-entrada').addEventListener('submit', (e) => {
+            e.preventDefault();
+            const item = {
+                id: Date.now(),
+                barcode: document.getElementById('barcode-input').value,
+                desc: document.getElementById('desc-input').value,
+                qty: parseInt(document.getElementById('qty-input').value),
+                provider: document.getElementById('provider-input').value,
+                batch: 'MP-' + Date.now().toString().slice(-6),
+                date: new Date().toLocaleString()
+            };
+            Storage.add(DB_KEYS.RAW, item);
+            Storage.log('ENTRADA', item.desc, item.qty, item.batch);
+            alert(`✅ Entrada registrada. Lote: ${item.batch}`);
+            e.target.reset();
+            renderTableRaw();
+        });
+
+        function renderTableRaw() {
+            const data = Storage.get(DB_KEYS.RAW);
+            document.getElementById('raw-body').innerHTML = data.map(i => `
+                <tr><td>${i.barcode}</td><td>${i.desc}</td><td>${i.qty}</td><td>${i.batch}</td><td>${i.provider}</td></tr>
+            `).join('');
+        }
+
+        // --- 5. LÓGICA PRODUCCIÓN ---
+        function initProductionUI() {
+            const raw = Storage.get(DB_KEYS.RAW).filter(i => i.qty > 0);
+            const select = document.getElementById('raw-select');
+            select.innerHTML = raw.map(i => `<option value="${i.id}">${i.desc} (Disp: ${i.qty})</option>`).join('');
+            renderProductionTable();
+        }
+
+        function startProduction() {
+            const rawId = document.getElementById('raw-select').value;
+            const qty = parseInt(document.getElementById('qty-prod').value);
+            
+            if(!rawId || isNaN(qty) || qty <= 0) return alert('Datos inválidos');
+
+            let rawData = Storage.get(DB_KEYS.RAW);
+            let itemIdx = rawData.findIndex(i => i.id == rawId);
+            
+            if(itemIdx === -1 || rawData[itemIdx].qty < qty) return alert('Stock insuficiente');
+
+            // Descontar MP
+            rawData[itemIdx].qty -= qty;
+            Storage.save(DB_KEYS.RAW, rawData);
+
+            // Crear Lote Producción
+            const prodItem = {
+                id: Date.now(),
+                rawDesc: rawData[itemIdx].desc,
+                qtyUsed: qty,
+                batch: 'PROD-' + Date.now().toString().slice(-6),
+                status: 'PROCESO',
+                start: new Date().toLocaleString()
+            };
+            Storage.add(DB_KEYS.PROD, prodItem);
+            Storage.log('PRODUCCION', prodItem.rawDesc, qty, prodItem.batch, 'Inicio');
+            
+            generateLabel(prodItem.batch, `PROD: ${prodItem.rawDesc}`);
+            initProductionUI(); // Refrescar
+        }
+
+        function renderProductionTable() {
+            const prods = Storage.get(DB_KEYS.PROD).filter(p => p.status === 'PROCESO');
+            document.getElementById('production-body').innerHTML = prods.map(p => `
+                <tr>
+                    <td>${p.batch}</td><td>${p.rawDesc}</td><td>${p.qtyUsed}</td><td>${p.start}</td>
+                    <td><button class="btn btn-success btn-sm" onclick="finishProduction(${p.id})">Finalizar</button></td>
+                </tr>
+            `).join('');
+        }
+
+        window.finishProduction = (id) => {
+            const qtyFinal = prompt("Cantidad FINAL obtenida (Producto Acabado):");
+            const sobras = prompt("Cantidad de Sobras/Residuos:");
+            
+            if(qtyFinal && !isNaN(qtyFinal)) {
+                let prods = Storage.get(DB_KEYS.PROD);
+                let idx = prods.findIndex(p => p.id === id);
+                if(idx !== -1) {
+                    prods[idx].status = 'FINALIZADO';
+                    Storage.save(DB_KEYS.PROD, prods);
+
+                    const finishedItem = {
+                        id: Date.now(),
+                        desc: prods[idx].rawDesc + " (FINAL)",
+                        batch: prods[idx].batch,
+                        qty: parseInt(qtyFinal),
+                        sobras: sobras,
+                        date: new Date().toLocaleString()
+                    };
+                    Storage.add(DB_KEYS.FINISHED, finishedItem);
+                    Storage.log('ACABADO', finishedItem.desc, finishedItem.qty, finishedItem.batch, `Sobras: ${sobras}`);
+                    alert("✅ Producción finalizada. Movido a Stock Acabado.");
+                    initProductionUI();
+                }
+            }
+        };
+
+        // --- 6. LÓGICA ACABADO & ETIQUETAS ---
+        function renderFinishedTable() {
+            const data = Storage.get(DB_KEYS.FINISHED).filter(i => i.qty > 0);
+            document.getElementById('finished-body').innerHTML = data.map(i => `
+                <tr>
+                    <td>${i.batch}</td><td>${i.desc}</td><td>${i.qty}</td><td>${i.date}</td>
+                    <td>
+                        <button class="btn btn-secondary btn-sm" onclick="generateLabel('${i.batch}','${i.desc}')"><i class="fas fa-print"></i></button>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        function generateLabel(code, text) {
+            const area = document.getElementById('printable-area');
+            area.innerHTML = `
+                <div class="etiqueta">
+                    <h3>${text}</h3>
+                    <svg id="barcode-svg"></svg>
+                    <p>Fecha: ${new Date().toLocaleDateString()}</p>
+                </div>
+            `;
+            JsBarcode("#barcode-svg", code);
+            window.print();
+        }
+
+        // --- 7. LÓGICA SALIDA ---
+        function initExitUI() {
+            const data = Storage.get(DB_KEYS.FINISHED).filter(i => i.qty > 0);
+            const select = document.getElementById('dispatch-select');
+            select.innerHTML = data.map(i => `<option value="${i.id}">${i.desc} (Lote: ${i.batch} | Qty: ${i.qty})</option>`).join('');
+        }
+
+        function processExit() {
+            const id = document.getElementById('dispatch-select').value;
+            const qty = parseInt(document.getElementById('qty-out').value);
+            const dest = document.getElementById('destination').value;
+
+            if(!id || isNaN(qty)) return alert("Datos incompletos");
+
+            let finished = Storage.get(DB_KEYS.FINISHED);
+            let idx = finished.findIndex(i => i.id == id);
+
+            if(idx !== -1 && finished[idx].qty >= qty) {
+                finished[idx].qty -= qty;
+                Storage.save(DB_KEYS.FINISHED, finished);
+                Storage.log('SALIDA_FINAL', finished[idx].desc, qty, finished[idx].batch, `Destino: ${dest}`);
+                alert("🚚 Salida Registrada. Inventario actualizado.");
+                initExitUI();
+            } else {
+                alert("⛔ Stock insuficiente para esta salida.");
+            }
+        }
+
+        // --- 8. UTILIDADES EXTRAS ---
+        function exportTableToExcel(tableID) {
+            const wb = XLSX.utils.table_to_book(document.getElementById(tableID));
+            XLSX.writeFile(wb, 'Inventario_WMS.xlsx');
+        }
+
+        function startCamera(inputId) {
+            const modalEl = document.getElementById('scannerModal');
+            const modal = new bootstrap.Modal(modalEl);
+            modal.show();
+
+            html5QrCode = new Html5Qrcode("reader");
+            html5QrCode.start(
+                { facingMode: "environment" }, 
+                { fps: 10, qrbox: 250 },
+                (decodedText) => {
+                    document.getElementById(inputId).value = decodedText;
+                    html5QrCode.stop();
+                    modal.hide();
+                }
+            ).catch(err => {
+                console.error(err);
+                alert("Error: Asegúrate de usar HTTPS o localhost para acceder a la cámara.");
+                modal.hide();
+            });
+
+            modalEl.addEventListener('hidden.bs.modal', () => {
+                if(html5QrCode && html5QrCode.isScanning) html5QrCode.stop();
+            });
+        }
+    </script>
+</body>
+</html>
