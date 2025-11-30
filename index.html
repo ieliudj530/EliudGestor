@@ -20,7 +20,6 @@
 <body>
 
     <div id="sidebar-overlay" onclick="toggleSidebar()"></div>
-
     <div class="toast-container position-fixed top-0 end-0 p-3" style="z-index: 3000" id="toast-area"></div>
 
     <div id="login-screen">
@@ -35,14 +34,14 @@
             <form id="login-form">
                 <div class="form-floating mb-3 text-start">
                     <input type="text" class="form-control" id="u-name" required value="admin">
-                    <label>Usuário Corporativo</label>
+                    <label>Usuário</label>
                 </div>
                 <div class="form-floating mb-4 text-start">
                     <input type="password" class="form-control" id="u-pass" required value="1234">
-                    <label>Senha de Acesso</label>
+                    <label>Senha</label>
                 </div>
                 <button type="submit" class="btn btn-primary w-100 py-3 fw-bold shadow-lg" id="btn-login">
-                    <i class="fas fa-sign-in-alt me-2"></i> ACESSAR SISTEMA
+                    ENTRAR
                 </button>
             </form>
             <div class="mt-4 text-muted small border-top pt-3">Demo: admin / 1234</div>
@@ -55,11 +54,8 @@
                 <i class="fas fa-layer-group fa-lg text-info"></i>
                 <div><h6 class="m-0 fw-bold text-white">EliudGestor</h6><small style="opacity:0.6;">GCA TEXTIL</small></div>
             </div>
-            <button class="btn btn-sm btn-outline-secondary d-lg-none border-0 text-white" onclick="toggleSidebar()">
-                <i class="fas fa-times fa-lg"></i>
-            </button>
+            <button class="btn btn-sm btn-outline-secondary d-lg-none border-0 text-white" onclick="toggleSidebar()"><i class="fas fa-times fa-lg"></i></button>
         </div>
-
         <div class="py-3 flex-grow-1 overflow-auto">
             <small class="text-uppercase text-muted fw-bold px-4 mb-2 d-block" style="font-size: 0.7rem;">Módulos</small>
             <a class="nav-link active" onclick="loadView('dashboard')"><i class="fas fa-chart-pie me-3"></i> Dashboard</a>
@@ -71,18 +67,16 @@
             <div class="my-2 border-top border-secondary opacity-25"></div>
             <a class="nav-link" onclick="loadView('saida')"><i class="fas fa-shipping-fast me-3"></i> Expedição</a>
         </div>
-
         <div class="p-3 bg-black bg-opacity-25">
-            <button class="btn btn-outline-secondary w-100 text-light btn-sm" onclick="logout()"><i class="fas fa-power-off me-2"></i> Encerrar Sessão</button>
+            <button class="btn btn-outline-secondary w-100 text-light btn-sm" onclick="logout()"><i class="fas fa-power-off me-2"></i> Sair</button>
         </div>
     </nav>
 
     <div class="main-wrapper" id="app-content" style="filter: blur(5px);">
-        
         <header class="bg-white border-bottom px-4 py-3 d-flex justify-content-between align-items-center sticky-top shadow-sm">
             <div class="d-flex align-items-center gap-3">
                 <button class="btn btn-light d-lg-none text-primary" onclick="toggleSidebar()"><i class="fas fa-bars fa-lg"></i></button>
-                <h5 class="m-0 fw-bold text-secondary" id="page-title">Dashboard Executivo</h5>
+                <h5 class="m-0 fw-bold text-secondary" id="page-title">Dashboard</h5>
             </div>
             <div class="d-flex align-items-center gap-3">
                 <div class="text-end d-none d-md-block line-height-sm">
@@ -97,73 +91,37 @@
 
             <div id="view-dashboard" class="view-section fade-in">
                 <div class="row g-4 mb-4">
-                    <div class="col-md-4">
-                        <div class="kpi-box bg-primary">
-                            <small class="text-uppercase opacity-75 fw-bold">Matéria Prima</small>
-                            <h2 class="display-5 fw-bold mb-0" id="kpi-raw">0</h2>
-                            <i class="fas fa-cubes position-absolute end-0 bottom-0 p-3 opacity-25 fa-3x"></i>
-                        </div>
-                    </div>
-                    <div class="col-md-4">
-                        <div class="kpi-box bg-success">
-                            <small class="text-uppercase opacity-75 fw-bold">Acabados</small>
-                            <h2 class="display-5 fw-bold mb-0" id="kpi-finished">0</h2>
-                            <i class="fas fa-check-circle position-absolute end-0 bottom-0 p-3 opacity-25 fa-3x"></i>
-                        </div>
-                    </div>
-                    <div class="col-md-4">
-                        <div class="kpi-box" style="background: #6366f1;">
-                            <small class="text-uppercase opacity-75 fw-bold">Peso Estoque</small>
-                            <h2 class="display-5 fw-bold mb-0" id="kpi-weight">0 kg</h2>
-                            <i class="fas fa-weight-hanging position-absolute end-0 bottom-0 p-3 opacity-25 fa-3x"></i>
-                        </div>
-                    </div>
+                    <div class="col-md-4"><div class="kpi-box bg-primary"><small class="text-uppercase opacity-75 fw-bold">Matéria Prima</small><h2 class="display-5 fw-bold mb-0" id="kpi-raw">0</h2><i class="fas fa-cubes position-absolute end-0 bottom-0 p-3 opacity-25 fa-3x"></i></div></div>
+                    <div class="col-md-4"><div class="kpi-box bg-success"><small class="text-uppercase opacity-75 fw-bold">Acabados</small><h2 class="display-5 fw-bold mb-0" id="kpi-finished">0</h2><i class="fas fa-check-circle position-absolute end-0 bottom-0 p-3 opacity-25 fa-3x"></i></div></div>
+                    <div class="col-md-4"><div class="kpi-box" style="background: #6366f1;"><small class="text-uppercase opacity-75 fw-bold">Peso Estoque</small><h2 class="display-5 fw-bold mb-0" id="kpi-weight">0 kg</h2><i class="fas fa-weight-hanging position-absolute end-0 bottom-0 p-3 opacity-25 fa-3x"></i></div></div>
                 </div>
-                <div class="erp-card h-100">
-                    <h5 class="text-primary mb-4">Produção Semanal</h5>
-                    <div style="height: 300px;">
-                        <canvas id="mainChart"></canvas>
-                    </div>
-                </div>
+                <div class="erp-card h-100"><h5 class="text-primary mb-4">Produção Semanal</h5><div style="height: 300px;"><canvas id="mainChart"></canvas></div></div>
             </div>
 
             <div id="view-entrada" class="view-section fade-in" style="display: none;">
                 <div class="erp-card border-primary border-start border-0 border-top-0 border-end-0 border-bottom-0" style="border-left-width: 5px !important;">
                     <div class="d-flex justify-content-between align-items-center mb-4">
-                        <h5 class="mb-1 fw-bold"><i class="fas fa-file-invoice me-2 text-primary"></i>Entrada de NFe (Lote Único)</h5>
-                        <button class="btn btn-success" onclick="triggerXML()"><i class="fas fa-cloud-upload-alt me-2"></i> Importar XML</button>
+                        <h5 class="mb-1 fw-bold"><i class="fas fa-file-invoice me-2 text-primary"></i>Entrada NFe</h5>
+                        <button class="btn btn-success" onclick="triggerXML()"><i class="fas fa-cloud-upload-alt me-2"></i> XML</button>
                         <input type="file" id="xml-input" hidden accept=".xml" onchange="processXML(this)">
                     </div>
-
                     <div class="bg-light p-4 rounded-3 border mb-4">
                         <div class="row g-3 align-items-end">
                             <div class="col-md-5">
-                                <label class="small fw-bold text-uppercase text-secondary mb-1">Número do Lote (NF)</label>
+                                <label class="small fw-bold text-uppercase text-secondary mb-1">Número do Lote</label>
                                 <div class="input-group">
                                     <span class="input-group-text bg-white"><i class="fas fa-barcode"></i></span>
-                                    <input type="text" id="in-batch" class="form-control fw-bold text-uppercase" placeholder="EX: LOTE-2024-001">
+                                    <input type="text" id="in-batch" class="form-control fw-bold text-uppercase" placeholder="EX: LOTE-001">
                                     <button class="btn btn-primary" onclick="openScanner('in-batch')"><i class="fas fa-camera"></i></button>
                                 </div>
                             </div>
                             <div class="col-md-7 text-end"><button class="btn btn-outline-primary" onclick="openManualModal()"><i class="fas fa-plus me-2"></i> Manual</button></div>
                         </div>
                     </div>
-
                     <div class="table-responsive border rounded-3 mb-4">
                         <table class="table table-erp table-hover mb-0">
-                            <thead>
-                                <tr>
-                                    <th>Item</th>
-                                    <th class="text-center">Qtd</th>
-                                    <th class="text-center">Peso Total</th>
-                                    <th class="text-center text-primary">Peso Unit.</th>
-                                    <th class="text-center">Tipo</th>
-                                    <th class="text-end">Ação</th>
-                                </tr>
-                            </thead>
-                            <tbody id="temp-entry-body">
-                                <tr><td colspan="6" class="text-center py-5 text-muted">A lista está vazia. Aguardando itens...</td></tr>
-                            </tbody>
+                            <thead><tr><th>Item</th><th class="text-center">Qtd</th><th class="text-center">Peso Tot</th><th class="text-center text-primary">Peso Unit</th><th class="text-center">Tipo</th><th class="text-end">Ação</th></tr></thead>
+                            <tbody id="temp-entry-body"><tr><td colspan="6" class="text-center py-5 text-muted">Aguardando itens...</td></tr></tbody>
                         </table>
                     </div>
                     <div class="d-flex justify-content-end gap-3 pt-3 border-top">
@@ -173,32 +131,31 @@
                 </div>
             </div>
 
-           <div id="view-producao" class="view-section fade-in" style="display: none;">
+            <div id="view-producao" class="view-section fade-in" style="display: none;">
                 <div class="row g-4">
                     <div class="col-lg-5">
                         <div class="erp-card h-100 border-primary" style="border-left-width: 5px !important;">
                             <h5 class="fw-bold mb-4"><i class="fas fa-industry me-2"></i>Ordem de Produção</h5>
                             
                             <div class="mb-4">
-                                <label class="small fw-bold text-secondary mb-1">1. FICHA TÉCNICA (PRODUTO)</label>
+                                <label class="small fw-bold text-secondary mb-1">1. FICHA TÉCNICA (Produto)</label>
                                 <select id="recipe-select" class="form-select form-select-lg fw-bold text-primary" onchange="calcProduction()">
-                                    <option value="">Selecione o Produto...</option>
-                                    </select>
+                                    <option value="">Selecione...</option>
+                                </select>
                             </div>
 
                             <div class="mb-4">
                                 <label class="small fw-bold text-secondary mb-1">2. LOTE DE ORIGEM (MP)</label>
                                 <div class="input-group">
                                     <select id="prod-batch-select" class="form-select" onchange="calcProduction()">
-                                        <option value="">Selecione o Lote de Matéria Prima...</option>
+                                        <option value="">Selecione Lote...</option>
                                     </select>
                                     <button class="btn btn-outline-secondary" onclick="Production.refreshBatches()"><i class="fas fa-sync-alt"></i></button>
                                 </div>
-                                <small class="text-muted">O sistema descontará os itens deste lote.</small>
                             </div>
 
                             <div class="mb-4">
-                                <label class="small fw-bold text-secondary mb-1">3. QUANTIDADE A PRODUZIR</label>
+                                <label class="small fw-bold text-secondary mb-1">3. QTD PLANEJADA</label>
                                 <div class="input-group input-group-lg">
                                     <input type="number" id="prod-qty" class="form-control fw-bold text-dark" placeholder="0" oninput="calcProduction()">
                                     <span class="input-group-text">Unidades</span>
@@ -211,34 +168,52 @@
                         <div class="erp-card h-100">
                             <h5 class="fw-bold mb-3"><i class="fas fa-calculator me-2"></i>Consumo Previsto</h5>
                             
-                            <div class="table-responsive border rounded-3 mb-3" style="max-height: 300px; overflow-y: auto;">
+                            <div class="table-responsive border rounded-3 mb-3" style="max-height: 250px; overflow-y: auto;">
                                 <table class="table table-sm table-striped mb-0 small">
-                                    <thead class="table-light sticky-top">
-                                        <tr>
-                                            <th>Ingrediente (Receta)</th>
-                                            <th class="text-center">Consumo Unit.</th>
-                                            <th class="text-center">Total Nec.</th>
-                                            <th class="text-end">Status no Lote</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody id="prod-calc-body">
-                                        <tr><td colspan="4" class="text-center py-5 text-muted">Configure a ordem ao lado...</td></tr>
-                                    </tbody>
+                                    <thead class="table-light sticky-top"><tr><th>Ingrediente</th><th class="text-center">Consumo Unit</th><th class="text-center">Total Nec.</th><th class="text-end">Status</th></tr></thead>
+                                    <tbody id="prod-calc-body"><tr><td colspan="4" class="text-center py-5 text-muted">Configure a ordem ao lado...</td></tr></tbody>
                                 </table>
                             </div>
 
-                            <div class="d-flex justify-content-between align-items-center bg-light p-3 rounded mb-3">
-                                <span class="fw-bold text-muted">PESO TOTAL TEÓRICO:</span>
-                                <span class="fs-4 fw-bold text-primary" id="total-weight-calc">0.00 kg</span>
-                            </div>
+                            <div class="bg-light p-3 rounded border mb-3">
+                                <h6 class="fw-bold text-dark border-bottom pb-2 mb-3">Reporte Final (Realidade)</h6>
+                                
+                                <div class="row g-2 mb-3">
+                                    <div class="col-6">
+                                        <label class="small fw-bold text-secondary">Qtd Planejada</label>
+                                        <input type="text" id="planned-qty" class="form-control bg-white" readonly value="0">
+                                    </div>
+                                    <div class="col-6">
+                                        <label class="small fw-bold text-success">Qtd REAL Produzida</label>
+                                        <input type="number" id="real-qty" class="form-control border-success fw-bold" placeholder="Ex: 990">
+                                    </div>
+                                </div>
 
-                            <div class="mb-3">
-                                <label class="small fw-bold">Resíduo / Lixo (Kg)</label>
-                                <input type="number" id="prod-waste" class="form-control" placeholder="0.00">
+                                <label class="small fw-bold text-danger mb-2"><i class="fas fa-recycle me-1"></i> Classificação de Resíduos (Kg)</label>
+                                <div class="card p-2 border-danger border-opacity-25 bg-white">
+                                    <div class="row g-2">
+                                        <div class="col-6">
+                                            <label class="small text-muted" style="font-size: 0.7rem;">Ráfia/Tecido (PP)</label>
+                                            <input type="number" step="0.01" id="waste-pp" class="form-control form-control-sm border-danger" placeholder="0.0">
+                                        </div>
+                                        <div class="col-6">
+                                            <label class="small text-muted" style="font-size: 0.7rem;">Liner/Plástico (PE)</label>
+                                            <input type="number" step="0.01" id="waste-pe" class="form-control form-control-sm border-danger" placeholder="0.0">
+                                        </div>
+                                        <div class="col-6">
+                                            <label class="small text-muted" style="font-size: 0.7rem;">Fios/Alças</label>
+                                            <input type="number" step="0.01" id="waste-mix" class="form-control form-control-sm border-danger" placeholder="0.0">
+                                        </div>
+                                        <div class="col-6">
+                                            <label class="small text-muted" style="font-size: 0.7rem;">Lixo Comum</label>
+                                            <input type="number" step="0.01" id="waste-trash" class="form-control form-control-sm border-secondary" placeholder="0.0">
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
 
                             <button class="btn btn-secondary w-100 py-3 fw-bold shadow-sm" id="btn-finish-prod" disabled onclick="finishProduction()">
-                                <i class="fas fa-check-circle me-2"></i> CONFIRMAR PRODUÇÃO
+                                <i class="fas fa-check-circle me-2"></i> ENCERRAR ORDEM
                             </button>
                         </div>
                     </div>
@@ -253,7 +228,7 @@
                     </div>
                     <div class="table-responsive border rounded-3">
                         <table class="table table-erp table-striped table-hover mb-0">
-                            <thead><tr><th>Lote</th><th>Item</th><th>Qtd Disp.</th><th>Peso Tot.</th><th>Peso Unit.</th><th>Ações</th></tr></thead>
+                            <thead><tr><th>Lote</th><th>Item</th><th>Qtd Disp.</th><th>Peso Tot.</th><th>Peso Unit.</th><th>Ação</th></tr></thead>
                             <tbody id="stock-body"></tbody>
                         </table>
                     </div>
@@ -265,7 +240,7 @@
                     <h5 class="mb-4 fw-bold">Histórico de Produção</h5>
                     <div class="table-responsive border rounded-3">
                         <table class="table table-erp table-hover mb-0">
-                            <thead><tr><th>Data</th><th>Lote</th><th>Qtd</th><th>Peso Útil</th><th>Ação</th></tr></thead>
+                            <thead><tr><th>Data</th><th>Lote MP</th><th>Produto</th><th>Qtd Real</th><th>Perda</th></tr></thead>
                             <tbody id="finished-body"></tbody>
                         </table>
                     </div>
@@ -273,53 +248,26 @@
             </div>
 
             <div id="view-saida" class="view-section fade-in" style="display: none;">
-                <div class="row justify-content-center">
-                    <div class="col-md-8">
-                        <div class="erp-card border-danger border-start border-0 border-top-0 border-end-0 border-bottom-0" style="border-left-width: 5px !important;">
-                            <h5 class="text-danger mb-4 fw-bold"><i class="fas fa-truck-loading me-2"></i>Expedição / Despacho</h5>
-                            
-                            <div class="mb-3">
-                                <label class="small fw-bold text-uppercase mb-1">Selecione Lote Acabado</label>
-                                <select id="dispatch-select" class="form-select form-select-lg"></select>
-                            </div>
-
-                            <div class="row g-3">
-                                <div class="col-md-6"><label class="small fw-bold text-uppercase mb-1">Quantidade</label><input type="number" id="dispatch-qty" class="form-control form-control-lg" placeholder="0"></div>
-                                <div class="col-md-6"><label class="small fw-bold text-uppercase mb-1">Cliente</label><input type="text" id="dispatch-client" class="form-control form-control-lg" placeholder="Ex: Cliente XYZ"></div>
-                            </div>
-                            <button class="btn btn-danger w-100 mt-5 py-3 fw-bold shadow-sm" onclick="processDispatch()"><i class="fas fa-paper-plane me-2"></i> CONFIRMAR SAÍDA</button>
-                        </div>
+                <div class="erp-card border-danger border-start border-0 border-top-0 border-end-0 border-bottom-0" style="border-left-width: 5px !important;">
+                    <h5 class="text-danger mb-4 fw-bold"><i class="fas fa-truck-loading me-2"></i>Expedição</h5>
+                    <div class="mb-3">
+                        <label class="small fw-bold">Selecione Lote Acabado</label>
+                        <select id="dispatch-select" class="form-select form-select-lg"></select>
                     </div>
+                    <div class="row g-3">
+                        <div class="col-md-6"><label class="small fw-bold">Quantidade</label><input type="number" id="dispatch-qty" class="form-control" placeholder="0"></div>
+                        <div class="col-md-6"><label class="small fw-bold">Cliente</label><input type="text" id="dispatch-client" class="form-control" placeholder="Cliente XYZ"></div>
+                    </div>
+                    <button class="btn btn-danger w-100 mt-4 py-3 fw-bold" onclick="processDispatch()">CONFIRMAR SAÍDA</button>
                 </div>
             </div>
 
-        </div> </div> <div class="modal fade" id="manualItemModal" tabindex="-1">
-        <div class="modal-dialog modal-dialog-centered">
-            <div class="modal-content">
-                <div class="modal-header"><h5 class="modal-title fw-bold">Novo Item Manual</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
-                <div class="modal-body">
-                    <form id="manual-form">
-                        <div class="mb-3"><label class="small fw-bold">Descrição</label><input type="text" id="m-desc" class="form-control" required></div>
-                        <div class="row g-2 mb-3"><div class="col"><label class="small fw-bold">Qtd</label><input type="number" id="m-qty" class="form-control" required></div><div class="col"><label class="small fw-bold">Peso Total (kg)</label><input type="number" step="0.01" id="m-weight" class="form-control"></div></div>
-                        <div class="mb-3"><label class="small fw-bold">Tipo</label><select id="m-type" class="form-select"><option value="KIT">KIT (Componente)</option><option value="COMUM">COMUM (Insumo)</option></select></div>
-                        <div class="alert alert-info small py-2"><i class="fas fa-info-circle"></i> Se não for pesar (ex: Etiquetas), deixe o Peso em 0 ou vazio.</div>
-                        <button type="submit" class="btn btn-primary w-100 mt-2">Confirmar</button>
-                    </form>
-                </div>
-            </div>
         </div>
     </div>
 
-    <div class="modal fade" id="scannerModal" tabindex="-1">
-        <div class="modal-dialog modal-dialog-centered">
-            <div class="modal-content bg-dark text-white border-0">
-                <div class="modal-header border-secondary"><h5 class="modal-title fs-6"><i class="fas fa-camera me-2"></i>Leitura de Código</h5><button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button></div>
-                <div class="modal-body p-0 position-relative"><div id="reader" style="width: 100%;"></div></div>
-            </div>
-        </div>
-    </div>
+    <div class="modal fade" id="manualItemModal" tabindex="-1"><div class="modal-dialog modal-dialog-centered"><div class="modal-content"><div class="modal-header"><h5 class="modal-title">Novo Item</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div><div class="modal-body"><form id="manual-form"><div class="mb-3"><label>Descrição</label><input type="text" id="m-desc" class="form-control" required></div><div class="row g-2 mb-3"><div class="col"><label>Qtd</label><input type="number" id="m-qty" class="form-control" required></div><div class="col"><label>Peso Total (kg)</label><input type="number" step="0.01" id="m-weight" class="form-control"></div></div><div class="mb-3"><label>Tipo</label><select id="m-type" class="form-select"><option value="KIT">KIT</option><option value="COMUM">COMUM</option></select></div><button type="submit" class="btn btn-primary w-100">Salvar</button></form></div></div></div></div>
+    <div class="modal fade" id="scannerModal" tabindex="-1"><div class="modal-dialog modal-dialog-centered"><div class="modal-content bg-dark"><div class="modal-body p-0"><div id="reader" style="width: 100%;"></div></div></div></div></div>
 
-    <script src="main.js?v=FINAL_MOBILE_FIX"></script>
-
+    <script src="main.js?v=6.0"></script>
 </body>
 </html>
