@@ -59,6 +59,7 @@
             <a class="nav-link active" onclick="loadView('dashboard')"><i class="fas fa-chart-pie me-3"></i> Dashboard</a>
             <a class="nav-link" onclick="loadView('entrada')"><i class="fas fa-dolly me-3"></i> Entrada (NFe)</a>
             <a class="nav-link" onclick="loadView('estoque')"><i class="fas fa-boxes me-3"></i> Estoque</a>
+            <a class="nav-link" onclick="loadView('fichas')"><i class="fas fa-file-alt me-3"></i> Fichas Técnicas</a>
             <div class="my-2 border-top border-secondary opacity-25"></div>
             <a class="nav-link" onclick="loadView('producao')"><i class="fas fa-industry me-3"></i> Produção</a>
             <a class="nav-link" onclick="loadView('acabado')"><i class="fas fa-clipboard-check me-3"></i> Acabados</a>
@@ -98,7 +99,6 @@
 
             <div id="view-entrada" class="view-section fade-in" style="display: none;">
                 <div class="erp-card border-primary border-start border-0 border-top-0 border-end-0 border-bottom-0" style="border-left-width: 5px !important;">
-                    
                     <div class="d-flex justify-content-between align-items-center mb-4">
                         <h5 class="mb-1 fw-bold"><i class="fas fa-file-invoice me-2 text-primary"></i>Entrada NFe</h5>
                         <div>
@@ -107,7 +107,6 @@
                         </div>
                         <input type="file" id="xml-input" hidden accept=".xml" onchange="processXML(this)">
                     </div>
-
                     <div class="bg-light p-4 rounded-3 border mb-4">
                         <div class="row g-3 align-items-end">
                             <div class="col-md-5">
@@ -121,28 +120,45 @@
                             <div class="col-md-7 text-end"><button class="btn btn-outline-primary" onclick="openManualModal()"><i class="fas fa-plus me-2"></i> Manual</button></div>
                         </div>
                     </div>
-
                     <div class="table-responsive border rounded-3 mb-4" style="max-height: 400px; overflow-y: auto;">
                         <table class="table table-erp table-hover mb-0 align-middle">
                             <thead class="table-light sticky-top">
                                 <tr>
-                                    <th class="text-center">Status</th> <th>Item / Código</th>
+                                    <th class="text-center">Status</th>
+                                    <th>Item / Código</th>
                                     <th class="text-center">Qtd</th>
                                     <th class="text-center">Peso Tot</th>
                                     <th class="text-center text-primary">Unitário</th>
                                     <th class="text-end">Ação</th>
                                 </tr>
                             </thead>
-                            <tbody id="temp-entry-body">
-                                <tr><td colspan="6" class="text-center py-5 text-muted">Aguardando itens...</td></tr>
-                            </tbody>
+                            <tbody id="temp-entry-body"><tr><td colspan="6" class="text-center py-5 text-muted">Aguardando itens...</td></tr></tbody>
                         </table>
                     </div>
-
                     <div class="d-flex justify-content-end gap-3 pt-3 border-top">
                         <button class="btn btn-outline-danger px-4" onclick="clearEntry()">Cancelar</button>
                         <button class="btn btn-success px-4 fw-bold shadow-sm" onclick="commitEntry()"><i class="fas fa-save me-2"></i> PROCESSAR ENTRADA</button>
                     </div>
+                </div>
+            </div>
+
+            <div id="view-fichas" class="view-section fade-in" style="display: none;">
+                <div class="erp-card">
+                    <div class="d-flex justify-content-between align-items-center mb-4">
+                        <h5 class="fw-bold mb-0"><i class="fas fa-file-alt me-2 text-primary"></i>Fichas Técnicas</h5>
+                        <div>
+                            <button class="btn btn-success btn-sm me-2" onclick="Recipes.triggerImport()"><i class="fas fa-file-upload me-2"></i> Importar XML</button>
+                            <input type="file" id="ft-xml-input" hidden accept=".xml" onchange="Recipes.processImport(this)">
+                            <button class="btn btn-primary btn-sm" onclick="Recipes.addManual()"><i class="fas fa-plus me-2"></i> Nova Manual</button>
+                        </div>
+                    </div>
+                    <div class="table-responsive border rounded-3">
+                        <table class="table table-erp table-hover mb-0">
+                            <thead><tr><th>ID</th><th>Nome do Produto</th><th class="text-center">Ingredientes</th><th class="text-end">Ação</th></tr></thead>
+                            <tbody id="recipes-body"></tbody>
+                        </table>
+                    </div>
+                    <div class="alert alert-info small mt-3 mb-0"><i class="fas fa-info-circle me-1"></i> Estas receitas definem o consumo na produção.</div>
                 </div>
             </div>
 
@@ -151,24 +167,17 @@
                     <div class="col-lg-5">
                         <div class="erp-card h-100 border-primary" style="border-left-width: 5px !important;">
                             <h5 class="fw-bold mb-4"><i class="fas fa-industry me-2"></i>Ordem de Produção</h5>
-                            
                             <div class="mb-4">
                                 <label class="small fw-bold text-secondary mb-1">1. FICHA TÉCNICA (Produto)</label>
-                                <select id="recipe-select" class="form-select form-select-lg fw-bold text-primary" onchange="calcProduction()">
-                                    <option value="">Selecione...</option>
-                                </select>
+                                <select id="recipe-select" class="form-select form-select-lg fw-bold text-primary" onchange="calcProduction()"><option value="">Selecione...</option></select>
                             </div>
-
                             <div class="mb-4">
                                 <label class="small fw-bold text-secondary mb-1">2. LOTE DE ORIGEM (MP)</label>
                                 <div class="input-group">
-                                    <select id="prod-batch-select" class="form-select" onchange="calcProduction()">
-                                        <option value="">Selecione Lote...</option>
-                                    </select>
+                                    <select id="prod-batch-select" class="form-select" onchange="calcProduction()"><option value="">Selecione Lote...</option></select>
                                     <button class="btn btn-outline-secondary" onclick="Production.refreshBatches()"><i class="fas fa-sync-alt"></i></button>
                                 </div>
                             </div>
-
                             <div class="mb-4">
                                 <label class="small fw-bold text-secondary mb-1">3. QTD PLANEJADA</label>
                                 <div class="input-group input-group-lg">
@@ -178,57 +187,32 @@
                             </div>
                         </div>
                     </div>
-
                     <div class="col-lg-7">
                         <div class="erp-card h-100">
                             <h5 class="fw-bold mb-3"><i class="fas fa-calculator me-2"></i>Consumo Previsto</h5>
-                            
                             <div class="table-responsive border rounded-3 mb-3" style="max-height: 250px; overflow-y: auto;">
                                 <table class="table table-sm table-striped mb-0 small">
                                     <thead class="table-light sticky-top"><tr><th>Ingrediente</th><th class="text-center">Unitário</th><th class="text-center">Total Nec.</th><th class="text-end">Status</th></tr></thead>
                                     <tbody id="prod-calc-body"><tr><td colspan="4" class="text-center py-5 text-muted">Configure a ordem ao lado...</td></tr></tbody>
                                 </table>
                             </div>
-
                             <div class="bg-light p-3 rounded border mb-3">
                                 <h6 class="fw-bold text-dark border-bottom pb-2 mb-3">Reporte Final (Realidade)</h6>
                                 <div class="row g-2 mb-3">
-                                    <div class="col-6">
-                                        <label class="small fw-bold text-secondary">Qtd Planejada</label>
-                                        <input type="text" id="planned-qty" class="form-control bg-white" readonly value="0">
-                                    </div>
-                                    <div class="col-6">
-                                        <label class="small fw-bold text-success">Qtd REAL Produzida</label>
-                                        <input type="number" id="real-qty" class="form-control border-success fw-bold" placeholder="Ex: 990">
-                                    </div>
+                                    <div class="col-6"><label class="small fw-bold text-secondary">Qtd Planejada</label><input type="text" id="planned-qty" class="form-control bg-white" readonly value="0"></div>
+                                    <div class="col-6"><label class="small fw-bold text-success">Qtd REAL Produzida</label><input type="number" id="real-qty" class="form-control border-success fw-bold" placeholder="Ex: 990"></div>
                                 </div>
-
                                 <label class="small fw-bold text-danger mb-2"><i class="fas fa-recycle me-1"></i> Resíduos (Kg)</label>
                                 <div class="card p-2 border-danger border-opacity-25 bg-white">
                                     <div class="row g-2">
-                                        <div class="col-6">
-                                            <label class="small text-muted" style="font-size: 0.7rem;">Ráfia/Tecido (PP)</label>
-                                            <input type="number" step="0.01" id="waste-pp" class="form-control form-control-sm border-danger" placeholder="0.0">
-                                        </div>
-                                        <div class="col-6">
-                                            <label class="small text-muted" style="font-size: 0.7rem;">Liner/Plástico (PE)</label>
-                                            <input type="number" step="0.01" id="waste-pe" class="form-control form-control-sm border-danger" placeholder="0.0">
-                                        </div>
-                                        <div class="col-6">
-                                            <label class="small text-muted" style="font-size: 0.7rem;">Fios/Alças</label>
-                                            <input type="number" step="0.01" id="waste-mix" class="form-control form-control-sm border-danger" placeholder="0.0">
-                                        </div>
-                                        <div class="col-6">
-                                            <label class="small text-muted" style="font-size: 0.7rem;">Lixo Comum</label>
-                                            <input type="number" step="0.01" id="waste-trash" class="form-control form-control-sm border-secondary" placeholder="0.0">
-                                        </div>
+                                        <div class="col-6"><label class="small text-muted" style="font-size:0.7em;">Ráfia (PP)</label><input type="number" step="0.01" id="waste-pp" class="form-control form-control-sm border-danger" placeholder="0.0"></div>
+                                        <div class="col-6"><label class="small text-muted" style="font-size:0.7em;">Liner (PE)</label><input type="number" step="0.01" id="waste-pe" class="form-control form-control-sm border-danger" placeholder="0.0"></div>
+                                        <div class="col-6"><label class="small text-muted" style="font-size:0.7em;">Fios/Alças</label><input type="number" step="0.01" id="waste-mix" class="form-control form-control-sm border-danger" placeholder="0.0"></div>
+                                        <div class="col-6"><label class="small text-muted" style="font-size:0.7em;">Lixo</label><input type="number" step="0.01" id="waste-trash" class="form-control form-control-sm border-secondary" placeholder="0.0"></div>
                                     </div>
                                 </div>
                             </div>
-
-                            <button class="btn btn-secondary w-100 py-3 fw-bold shadow-sm" id="btn-finish-prod" disabled onclick="finishProduction()">
-                                <i class="fas fa-check-circle me-2"></i> ENCERRAR ORDEM
-                            </button>
+                            <button class="btn btn-secondary w-100 py-3 fw-bold shadow-sm" id="btn-finish-prod" disabled onclick="finishProduction()"><i class="fas fa-check-circle me-2"></i> ENCERRAR ORDEM</button>
                         </div>
                     </div>
                 </div>
@@ -283,6 +267,35 @@
     
     <div class="modal fade" id="scannerModal" tabindex="-1"><div class="modal-dialog modal-dialog-centered"><div class="modal-content bg-dark"><div class="modal-body p-0"><div id="reader" style="width: 100%;"></div></div></div></div></div>
 
-    <script src="main.js?v=7.0"></script>
+    <div class="modal fade" id="recipeEditModal" tabindex="-1">
+        <div class="modal-dialog modal-lg modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header bg-primary text-white">
+                    <h5 class="modal-title fw-bold" id="recipe-edit-title">Editar Ficha Técnica</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <input type="hidden" id="recipe-edit-index">
+                    <div class="mb-3">
+                        <label class="small fw-bold">Nome do Produto</label>
+                        <input type="text" id="recipe-edit-name" class="form-control fw-bold">
+                    </div>
+                    <div class="table-responsive border rounded">
+                        <table class="table table-sm mb-0">
+                            <thead class="table-light"><tr><th>Ingrediente (Busca no Estoque)</th><th style="width:100px">Consumo</th><th style="width:100px">Unid.</th><th></th></tr></thead>
+                            <tbody id="recipe-edit-body"></tbody>
+                        </table>
+                    </div>
+                    <button class="btn btn-sm btn-outline-primary mt-2" onclick="Recipes.addItemToModal()"><i class="fas fa-plus"></i> Adicionar Ingrediente</button>
+                </div>
+                <div class="modal-footer bg-light">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="button" class="btn btn-success fw-bold px-4" onclick="Recipes.saveEdited()">SALVAR ALTERAÇÕES</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="main.js?v=8.2"></script>
 </body>
 </html>
