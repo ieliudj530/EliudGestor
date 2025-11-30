@@ -1,17 +1,15 @@
 // ======================================================
-// MAIN.JS - GESTIÓN ERP v8.2 (EDITOR DE RECETAS COMPLETO)
+// MAIN.JS - GESTIÓN ERP v8.3 (FIX XML RECETAS)
 // ======================================================
 
-console.log("SISTEMA CARGADO: v8.2");
+console.log("SISTEMA CARGADO: v8.3");
 
 const Store = {
     raw: JSON.parse(localStorage.getItem('erp_raw')) || [],
     finished: JSON.parse(localStorage.getItem('erp_finished')) || [],
-    recipes: JSON.parse(localStorage.getItem('erp_recipes')) || [
-        { id: 'REC-001', name: 'BIG BAG STANDARD', items: [{ name: 'TECIDO', qty: 2.5, unit: 'm' }, { name: 'ALÇA', qty: 4, unit: 'un' }, { name: 'FIO', qty: 0.05, unit: 'kg' }] },
-        { id: 'REC-002', name: 'BIG BAG C/ VÁLVULA', items: [{ name: 'TECIDO', qty: 3.0, unit: 'm' }, { name: 'ALÇA', qty: 4, unit: 'un' }, { name: 'VÁLVULA', qty: 2, unit: 'un' }, { name: 'FIO', qty: 0.08, unit: 'kg' }] }
-    ],
+    recipes: JSON.parse(localStorage.getItem('erp_recipes')) || [],
     tempEntry: [],
+    
     save: function() {
         localStorage.setItem('erp_raw', JSON.stringify(this.raw));
         localStorage.setItem('erp_finished', JSON.stringify(this.finished));
@@ -101,7 +99,7 @@ function processXML(input) {
             let type = (desc.toUpperCase().includes('FIO')||desc.toUpperCase().includes('COLA'))?'COMUM':'KIT';
             Entry.addTemp({ id: Date.now()+i, code: code, desc, qty, totalWeight, unitWeight, type, verified: false });
         }
-        Toast.show('XML Importado!', 'success');
+        Toast.show('XML Importado! Inicie a conferência.', 'success');
         input.value='';
     };
     reader.readAsText(file);
@@ -132,7 +130,9 @@ function commitEntry() {
 }
 function clearEntry() { Store.tempEntry=[]; Entry.renderTemp(); }
 
-// --- GESTIÓN DE FICHAS TÉCNICAS (EDITOR) ---
+// ======================================================
+// --- GESTIÓN DE FICHAS TÉCNICAS (CORREGIDO PARA XML DE RECETAS) ---
+// ======================================================
 const Recipes = {
     render: function() {
         const tb = document.getElementById('recipes-body');
@@ -145,11 +145,12 @@ const Recipes = {
         Store.recipes.splice(index, 1); Store.save(); this.render();
     },
     addManual: function() {
-        // Crear receta vacía y abrir editor
         Store.recipes.push({ id: 'REC-'+Date.now().toString().slice(-4), name: 'NOVA RECEITA', items: [{ name: '', qty: 0, unit: 'un' }] });
         Store.save(); this.edit(Store.recipes.length - 1);
     },
     triggerImport: function() { document.getElementById('ft-xml-input').click(); },
+    
+    // --- AQUÍ ESTABA EL ERROR, AHORA LEE "CONSUMO" ---
     processImport: function(input) {
         const file = input.files[0];
         if(!file) return;
@@ -158,52 +159,57 @@ const Recipes = {
             try {
                 const parser = new DOMParser();
                 const xml = parser.parseFromString(e.target.result, "text/xml");
-                const prodName = xml.querySelector('xProd, Produto, Descricao, Name')?.textContent || "RECEITA IMPORTADA";
-                const itemsNodes = xml.querySelectorAll('Item, Componente, Ingrediente, det');
+                
+                // Buscar nombre en <Modelo>, <xProd>, <Produto>
+                const prodName = xml.querySelector('Identificacao Modelo, Modelo, xProd, Produto, Descricao, Name')?.textContent || "RECEITA IMPORTADA";
+                
+                // Buscar items en <Componente>, <Item>, <Ingrediente>
+                const itemsNodes = xml.querySelectorAll('Componentes Componente, Componente, Item, Ingrediente, det');
+                
                 if(itemsNodes.length === 0) throw new Error("Sem itens");
                 const newItems = [];
+                
                 itemsNodes.forEach(node => {
-                    const name = node.querySelector('xProd, Nome, Descricao, Name')?.textContent || "Item";
-                    const qty = parseFloat(node.querySelector('qCom, Qtd, Quantidade, Qty')?.textContent) || 0;
-                    const unit = node.querySelector('uCom, Unid, Unidade')?.textContent || 'UN';
+                    const name = node.querySelector('Descricao, xProd, Nome, Name')?.textContent || "Item";
+                    
+                    // CORRECCIÓN: AHORA BUSCA "Consumo" TAMBIÉN
+                    const qty = parseFloat(node.querySelector('Consumo, qCom, Qtd, Quantidade, Qty')?.textContent) || 0;
+                    
+                    const unit = node.querySelector('Unidade, uCom, Unid')?.textContent || 'UN';
+                    
                     if(qty > 0) newItems.push({ name: name.toUpperCase(), qty: qty, unit: unit });
                 });
+                
                 Store.recipes.push({ id: 'FT-'+Date.now().toString().slice(-5), name: prodName.toUpperCase(), items: newItems });
-                Store.save(); Recipes.render(); Toast.show('Importada!', 'success');
-            } catch(err) { alert("Erro XML Ficha Técnica."); }
+                Store.save(); Recipes.render(); Toast.show('Importada com sucesso!', 'success');
+            } catch(err) { 
+                console.log(err);
+                alert("Erro ao ler XML. Verifique se tem <Componente>, <Descricao> e <Consumo>."); 
+            }
             input.value = '';
         };
         reader.readAsText(file);
     },
     
-    // --- LÓGICA DEL EDITOR ---
     edit: function(index) {
         const r = Store.recipes[index];
         document.getElementById('recipe-edit-index').value = index;
         document.getElementById('recipe-edit-name').value = r.name;
-        
         const tbody = document.getElementById('recipe-edit-body');
         tbody.innerHTML = '';
         r.items.forEach(item => Recipes.addItemToModal(item));
-        
         new bootstrap.Modal(document.getElementById('recipeEditModal')).show();
     },
     addItemToModal: function(item = {name:'', qty:0, unit:'un'}) {
         const tbody = document.getElementById('recipe-edit-body');
         const row = document.createElement('tr');
-        row.innerHTML = `
-            <td><input type="text" class="form-control form-control-sm item-name" value="${item.name}" placeholder="Nome do ingrediente (Ex: TECIDO)"></td>
-            <td><input type="number" step="0.01" class="form-control form-control-sm item-qty" value="${item.qty}"></td>
-            <td><input type="text" class="form-control form-control-sm item-unit" value="${item.unit}"></td>
-            <td class="text-end"><button class="btn btn-sm text-danger" onclick="this.closest('tr').remove()"><i class="fas fa-times"></i></button></td>
-        `;
+        row.innerHTML = `<td><input type="text" class="form-control form-control-sm item-name" value="${item.name}" placeholder="Nome"></td><td><input type="number" step="0.01" class="form-control form-control-sm item-qty" value="${item.qty}"></td><td><input type="text" class="form-control form-control-sm item-unit" value="${item.unit}"></td><td class="text-end"><button class="btn btn-sm text-danger" onclick="this.closest('tr').remove()"><i class="fas fa-times"></i></button></td>`;
         tbody.appendChild(row);
     },
     saveEdited: function() {
         const index = document.getElementById('recipe-edit-index').value;
         const name = document.getElementById('recipe-edit-name').value;
         const rows = document.querySelectorAll('#recipe-edit-body tr');
-        
         const items = [];
         rows.forEach(row => {
             const n = row.querySelector('.item-name').value.toUpperCase();
@@ -211,16 +217,13 @@ const Recipes = {
             const u = row.querySelector('.item-unit').value;
             if(n && q > 0) items.push({ name: n, qty: q, unit: u });
         });
-
-        if(!name) return alert("Nome é obrigatório");
-        if(items.length === 0) return alert("Adicione pelo menos 1 ingrediente");
-
+        if(!name || items.length === 0) return alert("Preencha o nome e itens");
         Store.recipes[index].name = name.toUpperCase();
         Store.recipes[index].items = items;
         Store.save();
         Recipes.render();
         bootstrap.Modal.getInstance(document.getElementById('recipeEditModal')).hide();
-        Toast.show('Ficha Técnica Atualizada!', 'success');
+        Toast.show('Atualizada!', 'success');
     }
 };
 
@@ -251,7 +254,7 @@ const Production = {
                 if (available >= neededTotal) statusHtml = `<span class="badge bg-success">OK (${available})</span>`;
                 else { statusHtml = `<span class="badge bg-danger">Falta ${(neededTotal-available).toFixed(1)}</span>`; possible = false; }
             } else { statusHtml = `<span class="badge bg-secondary">Não achado</span>`; possible = false; }
-            html += `<tr><td><b>${ingredient.name}</b></td><td class="text-center">${ingredient.qty}</td><td class="text-center fw-bold">${neededTotal}</td><td class="text-end">${statusHtml}</td></tr>`;
+            html += `<tr><td><b>${ingredient.name}</b></td><td class="text-center">${ingredient.qty}</td><td class="text-center fw-bold">${neededTotal.toFixed(1)}</td><td class="text-end">${statusHtml}</td></tr>`;
         });
         tbody.innerHTML = html;
         if (qtyToProduce > 0 && possible) { btn.disabled = false; btn.className = 'btn btn-success w-100 py-3 fw-bold shadow-sm'; } 
@@ -264,8 +267,6 @@ function finishProduction() {
     const recipeIdx = document.getElementById('recipe-select').value;
     const batchName = document.getElementById('prod-batch-select').value;
     const qtyReal = parseInt(document.getElementById('real-qty').value);
-    
-    // Residuos
     const wPP = parseFloat(document.getElementById('waste-pp').value)||0;
     const wPE = parseFloat(document.getElementById('waste-pe').value)||0;
     const wMix = parseFloat(document.getElementById('waste-mix').value)||0;
@@ -300,26 +301,28 @@ function finishProduction() {
 
     Store.save();
     Toast.show('Produção Finalizada!', 'success');
-    
-    // Reset
     document.getElementById('prod-qty').value = '';
     document.getElementById('real-qty').value = '';
     document.getElementById('waste-pp').value = '';
-    document.getElementById('waste-pe').value = '';
-    document.getElementById('waste-mix').value = '';
-    document.getElementById('waste-trash').value = '';
     loadView('acabado');
 }
 
 // --- UTILS ---
 const Stock={render:()=>{document.getElementById('stock-body').innerHTML=Store.raw.map(i=>`<tr><td>${i.batch}</td><td>${i.desc}</td><td>${i.qty.toFixed(1)}</td><td>${i.totalWeight.toFixed(2)}</td><td>${i.unitWeight.toFixed(4)}</td><td class="text-end"><button class="btn btn-danger btn-sm" onclick="Stock.remove('${i.id}')">X</button></td></tr>`).join('')}, remove:(id)=>{Store.raw=Store.raw.filter(x=>String(x.id)!==String(id));Store.save();Stock.render()}};
-const Finished={render:()=>{const tb=document.getElementById('finished-body'); if(!Store.finished.length)return tb.innerHTML='<tr><td colspan="5" class="text-center py-5 text-muted">Vazio.</td></tr>'; tb.innerHTML=Store.finished.map(i=>{const w=i.wasteDetail||{pp:0,pe:0,mix:0,trash:0}; const wasteInfo=(i.wasteTotal>0)?`<span class="badge bg-danger" title="PP:${w.pp} PE:${w.pe} ...">-${i.wasteTotal.toFixed(2)} kg</span>`:'<span class="badge bg-success">0 kg</span>'; return `<tr><td>${i.date.split(',')[0]}</td><td>${i.originBatch}</td><td>${i.desc}</td><td class="fw-bold fs-5">${i.qty}</td><td class="text-end">${wasteInfo}</td></tr>`}).join('')}};
+const Finished={render:()=>{
+    const tb = document.getElementById('finished-body');
+    if(!Store.finished.length) return tb.innerHTML = `<tr><td colspan="5" class="text-center py-5 text-muted">Vazio.</td></tr>`;
+    tb.innerHTML = Store.finished.map(i => {
+        const w = i.wasteDetail || { pp:0, pe:0, mix:0, trash:0 };
+        const wasteInfo = (i.wasteTotal > 0) ? `<span class="badge bg-danger" title="PP:${w.pp} PE:${w.pe} ...">-${i.wasteTotal.toFixed(2)} kg</span>` : '<span class="badge bg-success">0 kg</span>';
+        return `<tr><td>${i.date.split(',')[0]}</td><td>${i.originBatch}</td><td>${i.desc}</td><td class="fw-bold fs-5">${i.qty}</td><td class="text-end">${wasteInfo}</td></tr>`;
+    }).join('');
+}};
 const Dispatch={render:()=>{const s=document.getElementById('dispatch-select');const a=Store.finished.filter(i=>i.qty>0);s.innerHTML=a.length?a.map(i=>`<option value="${i.id}">${i.desc} (${i.originBatch}) - Qtd: ${i.qty}</option>`).join(''):'<option>Vazio</option>'}};
 function processDispatch(){const id=document.getElementById('dispatch-select').value;const q=parseInt(document.getElementById('dispatch-qty').value);const c=document.getElementById('dispatch-client').value;if(!id||!q||!c)return Toast.show('Preencha tudo','error');const idx=Store.finished.findIndex(i=>String(i.id)===id);if(idx!==-1&&Store.finished[idx].qty>=q){Store.finished[idx].qty-=q;Store.save();Toast.show('Saída OK!','success');Dispatch.render();document.getElementById('dispatch-qty').value=''}else Toast.show('Erro estoque','error')};
 function triggerXML(){if(!document.getElementById('in-batch').value)return Toast.show('Lote?','error');document.getElementById('xml-input').click()}
 function openManualModal(){new bootstrap.Modal(document.getElementById('manualItemModal')).show()}
 document.getElementById('manual-form').addEventListener('submit',function(e){e.preventDefault();const d=document.getElementById('m-desc').value;const q=parseFloat(document.getElementById('m-qty').value);const w=parseFloat(document.getElementById('m-weight').value)||0;const t=document.getElementById('m-type').value;Entry.addTemp({id:Date.now(),code:'MANUAL',desc:d,qty:q,totalWeight:w,unitWeight:(q>0?w/q:0),type:t,verified:true});bootstrap.Modal.getInstance(document.getElementById('manualItemModal')).hide();e.target.reset()});
-// Scanner
 function openScanner(t){const m=new bootstrap.Modal(document.getElementById('scannerModal'));m.show();setTimeout(()=>{html5QrCode=new Html5Qrcode("reader");html5QrCode.start({facingMode:"environment"},{fps:10,qrbox:250},(txt)=>{document.getElementById(t).value=txt;html5QrCode.stop().then(()=>{m.hide();if(t==='prod-batch-search')loadBatchForProd()})})},300)}
 function exportExcel(){const w=XLSX.utils.json_to_sheet(Store.raw);const b=XLSX.utils.book_new();XLSX.utils.book_append_sheet(b,w,"Estoque");XLSX.writeFile(b,"Estoque.xlsx")}
 const Dashboard={render:()=>{const elRaw=document.getElementById('kpi-raw');const elFin=document.getElementById('kpi-finished');const elWei=document.getElementById('kpi-weight');if(elRaw)elRaw.innerText=Store.raw.length;if(elFin)elFin.innerText=Store.finished.reduce((a,i)=>a+i.qty,0);if(elWei)elWei.innerText=Store.raw.reduce((a,i)=>a+(i.totalWeight||0),0).toFixed(2)+' kg'}};
