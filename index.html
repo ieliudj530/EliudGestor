@@ -71,7 +71,7 @@
         </div>
     </nav>
 
-    <div class="main-wrapper" id="app-content" style="filter: blur(5px);">
+    <div class="main-wrapper d-flex flex-column min-vh-100" id="app-content" style="filter: blur(5px);">
         <header class="bg-white border-bottom px-4 py-3 d-flex justify-content-between align-items-center sticky-top shadow-sm">
             <div class="d-flex align-items-center gap-3">
                 <button class="btn btn-light d-lg-none text-primary" onclick="toggleSidebar()"><i class="fas fa-bars fa-lg"></i></button>
@@ -86,7 +86,7 @@
             </div>
         </header>
 
-        <div class="p-4">
+        <div class="p-4 flex-grow-1">
 
             <div id="view-dashboard" class="view-section fade-in">
                 <div class="row g-4 mb-4">
@@ -261,7 +261,21 @@
             </div>
 
         </div>
-    </div>
+
+        <footer class="bg-white border-top py-3 mt-auto">
+            <div class="container-fluid px-4">
+                <div class="d-flex align-items-center justify-content-between small">
+                    <div class="text-muted">
+                        &copy; 2025 <strong>DevEliud Systems</strong>. Todos os direitos reservados.
+                    </div>
+                    <div>
+                        <a href="#" class="text-muted text-decoration-none me-3">Privacidade</a>
+                        <a href="#" class="text-muted text-decoration-none">Suporte</a>
+                    </div>
+                </div>
+            </div>
+        </footer>
+        </div>
 
     <div class="modal fade" id="manualItemModal" tabindex="-1"><div class="modal-dialog modal-dialog-centered"><div class="modal-content"><div class="modal-header"><h5 class="modal-title">Novo Item</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div><div class="modal-body"><form id="manual-form"><div class="mb-3"><label>Descrição</label><input type="text" id="m-desc" class="form-control" required></div><div class="row g-2 mb-3"><div class="col"><label>Qtd</label><input type="number" id="m-qty" class="form-control" required></div><div class="col"><label>Peso Total (kg)</label><input type="number" step="0.01" id="m-weight" class="form-control"></div></div><div class="mb-3"><label>Tipo</label><select id="m-type" class="form-select"><option value="KIT">KIT</option><option value="COMUM">COMUM</option></select></div><button type="submit" class="btn btn-primary w-100">Salvar</button></form></div></div></div></div>
     
